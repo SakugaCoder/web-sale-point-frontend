@@ -1,8 +1,12 @@
 import { FontAwesomeIcon  } from "@fortawesome/react-fontawesome";
 import styled from "styled-components";
+import { Link } from "react-router-dom";
 
-const SidebarItemContainer = styled.div`
+
+const SidebarItemContainer = styled(Link)`
     // background-color: yellow;
+    color: #000;
+    text-decoration: none;
     padding: 10px;
     display: flex;
     justify-content: center;
@@ -35,7 +39,7 @@ const SidebarItemText = styled.p`
 
 export default function SidebarItem(props){
     return(
-        <SidebarItemContainer>
+        <SidebarItemContainer to={props.href}>
             <SidebarItemContent>
                 <SidebarItemIcon>
                     <FontAwesomeIcon icon={ (props.icon) }  size='lg' />

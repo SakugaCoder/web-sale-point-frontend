@@ -42,6 +42,8 @@
     background-color: #ffffff;
     border: none;
     cursor: pointer;
+    background-color: none;
+    border: none;
 }
 
 .block{

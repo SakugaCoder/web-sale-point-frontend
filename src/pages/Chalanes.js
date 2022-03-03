@@ -3,10 +3,10 @@ import styled from "styled-components";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes, faPen } from "@fortawesome/free-solid-svg-icons";
-import Input, { InputFile } from "../components/Input/Input";
+import Input from "../components/Input/Input";
 import Button from "../components/Button";
 
-import { useState, useRef, useEffect} from 'react';
+import { useState, useEffect} from 'react';
 import { getItems, updateItem, deleteItem, insertItem } from "../utils/SPAPPI";
 import Modal from "../components/Modal/Modal";
 import useModal from "../hooks/useModal";
@@ -54,7 +54,7 @@ const StyledTable = styled.table`
     }
 `;
 
-export default function Clientes(){
+export default function Chalanes(){
     const [tableData, setTableData] = useState(null);
     const { modalState, setModalState, handleModalClose } = useModal();
 
@@ -63,54 +63,52 @@ export default function Clientes(){
     
     
     const initialFunction = async () => {
-        let res = await getItems('clientes');
+        let res = await getItems('chalanes');
         if(res.err !== true){
             setTableData(res);
             console.log(res);
-        }
-        
-        
+        }      
     };
 
-    const createClient = async evt =>{
+    const createChalan = async evt =>{
         evt.preventDefault();
         let data = {
             nombre: evt.target.nombre.value,
             telefono: evt.target.telefono.value,
         };
 
-        let res = await insertItem('cliente', data);
+        let res = await insertItem('chalan', data);
         if(res.err === false){
             evt.target.reset(); 
-            initialFunction();    
+            initialFunction();   
         }
 
         else{
-            alert('Error al actualizar el producto');
+            alert('Error al actualizar chalan');
         }
     };
     
-    const openEditModal = product_data => {
-        setModalState({visible: true, content: editModal(product_data)});
+    const openEditModal = data => {
+        setModalState({visible: true, content: editModal(data)});
     };
 
-    const updateClient = async evt => {
+    const updateChalan = async evt => {
         evt.preventDefault();
         let data = {
             nombre: evt.target.nombre.value,
             telefono: evt.target.telefono.value,
-            client_id: evt.target.client_id.value
+            chalan_id: evt.target.chalan_id.value
         };
         
         handleModalClose();
 
-        let res = await updateItem('cliente', data);
+        let res = await updateItem('chalan', data);
         if(res.err === false){
             initialFunction();    
         }
 
         else{
-            alert('Error al actualizar el cliente');
+            alert('Error al actualizar chalan');
         }
     };
 
@@ -119,8 +117,8 @@ export default function Clientes(){
 
         <p>Editar datos de <strong style={ {fontSize: 16}}>{ item_data.nombre }</strong></p>
 
-        <form className="modal-form" onSubmit={ updateClient }>
-            <input type='hidden' name='client_id' required defaultValue={item_data.id} /> 
+        <form className="modal-form" onSubmit={ updateChalan }>
+            <input type='hidden' name='chalan_id' required defaultValue={item_data.id} /> 
             <Input placeholder='Nombre' label='Nombre' name='nombre' required defaultValue={item_data.nombre} /> 
             <Input placeholder='Telefono' label='Telefono' name='telefono' required defaultValue={item_data.telefono} /> 
             <div className="modal-buttons">
@@ -132,25 +130,25 @@ export default function Clientes(){
     };
 
 
-    const deleteClient = async evt => {
+    const deleteChalan = async evt => {
         evt.preventDefault();
-        let client_id = evt.target.client_id.value;
+        let chalan_id = evt.target.chalan_id.value;
         
         handleModalClose();
 
-        let res = await deleteItem('cliente', client_id);
+        let res = await deleteItem('chalan', chalan_id);
         if(res.err === false){
             initialFunction();    
         }
 
         else{
-            alert('Error al eliminar el cliente');
+            alert('Error al eliminar chalan');
         }
     }
 
 
-    const openDeleteModal = product_data => {
-        setModalState({visible: true, content: deleteModal(product_data)});
+    const openDeleteModal = data => {
+        setModalState({visible: true, content: deleteModal(data)});
     };
 
     const deleteModal = item_data => {
@@ -158,8 +156,8 @@ export default function Clientes(){
 
         <p>¿De verdad desea eliminar a <strong style={ {fontSize: 16}}>{ item_data.nombre}</strong>?</p>
 
-        <form className="modal-form" onSubmit={ deleteClient }>
-            <input type='hidden' name='client_id' defaultValue={ item_data.id } required/>
+        <form className="modal-form" onSubmit={ deleteChalan }>
+            <input type='hidden' name='chalan_id' defaultValue={ item_data.id } required/>
             <div className="modal-buttons" style={ {marginTop: 20} }>
                 <Button className="bg-red" >Si, eliminar</Button>
                 <Button type='submit' onClick={ handleModalClose }>Cancelar</Button>
@@ -179,9 +177,9 @@ export default function Clientes(){
     return(
         <Layout>
             <Container>
-                <h2>NUEVO CLIENTE</h2>
+                <h2>NUEVO CHALAN</h2>
 
-                <form onSubmit={ createClient }>
+                <form onSubmit={ createChalan }>
 
                     <StyledInput type='text' placeholder='Nombre' label='Nombre' name='nombre' required/>
                     <StyledInput type='text' placeholder='Telefono' label='Telefono' name='telefono'/>
@@ -192,7 +190,7 @@ export default function Clientes(){
                     </ButtonGroup>
                 </form>
 
-                <h2>LISTA DE CLIENTES</h2>
+                <h2>LISTA DE CHALANES</h2>
 
                 <div style={ { overflowX: 'auto'}}>
                     <StyledTable>

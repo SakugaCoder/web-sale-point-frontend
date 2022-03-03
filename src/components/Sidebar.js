@@ -3,6 +3,7 @@ import SidebarItem from "./SidebarItem";
 
 
 import { 
+    faTh,
     faClipboardList,
     faBoxes,
     faUserTie,
@@ -17,8 +18,9 @@ const SidebarContainer = styled.div`
     max-width: 280px;
     width: 100%;
     padding-top: 20px;
-    height: 100vh;
-    // display: fixed;
+    height: 100%;
+    position: fixed;
+    overflow-y: scroll;
 `;
 
 const SidebarLogo = styled.div`
@@ -28,8 +30,14 @@ const SidebarLogo = styled.div`
     margin-bottom: 40px;
 `;
 
-export default function Sidebar(){
+export default function Sidebar(props){
     const user_menu = [
+        {
+            name: 'Inicio',
+            href: '/inicio',
+            icon: faTh,
+            submenu: false
+        },
         {
             name: 'Pedidos',
             href: '/pedidos',
@@ -61,14 +69,14 @@ export default function Sidebar(){
             submenu: false
         },
         {
-            name: 'Ayudantes',
-            href: '/ayudantes',
+            name: 'Chalanes',
+            href: '/chalanes',
             icon: faHandsHelping,
             submenu: false
         },
         {
-            name: 'Proveedor',
-            href: '/proveedor',
+            name: 'Proveedores',
+            href: '/proveedores',
             icon: faBoxes,
             submenu: false
         },
@@ -83,9 +91,9 @@ export default function Sidebar(){
     return(
         <SidebarContainer>
             <SidebarLogo>
-                LOGO
+                PVOL
             </SidebarLogo>
-            { user_menu.map( (item,index) => <SidebarItem name={ item.name } href={ item.href } icon={ item.icon } key={index}  />) }
+            { user_menu.map( (item,index) => <SidebarItem className={props.active ===  item.name ? 'sidebar-item-active' : ''} name={ item.name } href={ item.href } icon={ item.icon } key={index}  />) }
         </SidebarContainer>
     );
 }

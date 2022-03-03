@@ -3,11 +3,11 @@ import styled from "styled-components";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes, faPen } from "@fortawesome/free-solid-svg-icons";
-import Input, { InputFile } from "../components/Input/Input";
+import Input from "../components/Input/Input";
 import Button from "../components/Button";
 
-import { useState, useRef, useEffect} from 'react';
-import { getItems, updateItem, deleteItem } from "../utils/SPAPPI";
+import { useState, useEffect} from 'react';
+import { getItems, updateItem, deleteItem, insertItem } from "../utils/SPAPPI";
 import Modal from "../components/Modal/Modal";
 import useModal from "../hooks/useModal";
 
@@ -54,76 +54,80 @@ const StyledTable = styled.table`
     }
 `;
 
-export default function Productos(){
-    const [currentUserImg, setCurrentUserImg] = useState('');
+export default function Suppliers(){
     const [tableData, setTableData] = useState(null);
     const { modalState, setModalState, handleModalClose } = useModal();
 
-    const userImgRef = useRef();
-    const fileTypes = ['image/png', 'image/jpg', 'image/jpeg'];
-    const fields = ['Imagen', 'Nombre', 'Precio', 'Eliminar', 'Modificar'];
+    const fields = ['Nombre', 'Rol', 'Eliminar', 'Modificar'];
 
     
-    const handleOnChangePhoto = (evt) => {
-        console.log(evt.target.files);
-        if(evt.target.files.length > 0){
-            let file = evt.target.files[0];
-            console.log(file);
-            if(fileTypes.includes(file.type)){
-                let fr = new FileReader()
-                if(fr){
-                    fr.readAsDataURL(file);
-                }
     
-                fr.onloadend = ()  => {
-                    //console.log(fr.result);
-                    setCurrentUserImg(fr.result);
-                }
-            }
-            else{
-                alert('Tipo de archivo no permitido');
-            }
+    const initialFunction = async () => {
+        let res = await getItems('usuarios');
+        if(res.err !== true){
+            setTableData(res);
+            console.log(res);
+        }      
+    };
+
+    const createUser = async evt =>{
+        evt.preventDefault();
+        let data = {
+            nombre: evt.target.nombre.value,
+            rol: Number(evt.target.rol.value),
+            pswd: evt.target.pswd.value
+        };
+
+        let res = await insertItem('usuario', data);
+        if(res.err === false){
+            evt.target.reset(); 
+            initialFunction();   
+        }
+
+        else{
+            alert('Error al actualizar usuario');
         }
     };
     
-    const initialFunction = async () => {
-        let res = await getItems('Productos');
-        console.log(res);
-        setTableData(res);
-    };
-    
-    const openEditModal = product_data => {
-        setModalState({visible: true, content: editModal(product_data)});
+    const openEditModal = data => {
+        setModalState({visible: true, content: editModal(data)});
     };
 
-    const updateProduct = async evt => {
+    const updateUser = async evt => {
+        evt.preventDefault();
         let data = {
-            name: evt.target.name.value,
-            price: evt.target.price.value,
-            product_id: evt.target.product_id.value
+            nombre: evt.target.nombre.value,
+            rol: evt.target.rol.value,
+            user_id: evt.target.user_id.value
         };
         
         handleModalClose();
 
-        let res = await updateItem('producto', data);
+        let res = await updateItem('usuario', data);
         if(res.err === false){
             initialFunction();    
         }
 
         else{
-            alert('Error al actualizar el producto');
+            alert('Error al actualizar usuario');
         }
     };
 
     const editModal = item_data => {
         return <div className="product-card-modal">
 
-        <p>Editar datos de <strong style={ {fontSize: 16}}>{ item_data.name}</strong></p>
+        <p>Editar datos de <strong style={ {fontSize: 16}}>{ item_data.nombre }</strong></p>
 
-        <form className="modal-form" onSubmit={ updateProduct }>
-            <input type='hidden' name='product_id' required defaultValue={item_data.id} /> 
-            <Input placeholder='Nombre' label='Nombre' name='name' required defaultValue={item_data.name} /> 
-            <Input placeholder='Precio' label='Precio' name='price' required defaultValue={item_data.price} /> 
+        <form className="modal-form" onSubmit={ updateUser }>
+            <input type='hidden' name='user_id' required defaultValue={item_data.id} /> 
+            <Input placeholder='Nombre' label='Nombre' name='nombre' required defaultValue={item_data.nombre} /> 
+            <label style={ {marginBottom: 20} }>
+                <p>Rol</p>
+                <select name="rol" defaultValue={'' + item_data.rol }>
+                    <option value="0">Usuario</option>
+                    <option value="1" selected>Administrador</option>
+                </select>
+            </label>
             <div className="modal-buttons">
                 <Button className="bg-primary" type='submit'>Guardar</Button>
                 <Button className="bg-red" onClick={ handleModalClose }>Cancelar</Button>
@@ -133,34 +137,34 @@ export default function Productos(){
     };
 
 
-    const deleteProduct = async evt => {
-        let product_id = evt.target.product_id.value;
-        
+    const deleteUser = async evt => {
+        evt.preventDefault();
+        let user_id = evt.target.user_id.value;
         
         handleModalClose();
 
-        let res = await deleteItem('producto', product_id);
+        let res = await deleteItem('usuario', user_id);
         if(res.err === false){
             initialFunction();    
         }
 
         else{
-            alert('Error al eliminar el producto');
+            alert('Error al eliminar proveedor');
         }
     }
 
 
-    const openDeleteModal = product_data => {
-        setModalState({visible: true, content: deleteModal(product_data)});
+    const openDeleteModal = data => {
+        setModalState({visible: true, content: deleteModal(data)});
     };
 
     const deleteModal = item_data => {
         return <div className="product-card-modal">
 
-        <p>¿De verdad desea eliminar <strong style={ {fontSize: 16}}>{ item_data.name}</strong>?</p>
+        <p>¿De verdad desea eliminar a <strong style={ {fontSize: 16}}>{ item_data.nombre}</strong>?</p>
 
-        <form className="modal-form" onSubmit={ deleteProduct }>
-            <input type='hidden' name='product_id' defaultValue={ item_data.id } required/>
+        <form className="modal-form" onSubmit={ deleteUser }>
+            <input type='hidden' name='user_id' defaultValue={ item_data.id } required/>
             <div className="modal-buttons" style={ {marginTop: 20} }>
                 <Button className="bg-red" >Si, eliminar</Button>
                 <Button type='submit' onClick={ handleModalClose }>Cancelar</Button>
@@ -173,21 +177,23 @@ export default function Productos(){
         initialFunction();
     }, []);
 
-    
-
-    
 
     return(
         <Layout>
             <Container>
-                <h2>NUEVO PRODUCTO</h2>
-                <div ref={userImgRef} className='user-profile-preview rounded-full m-auto shadow-lg' style={ {width: 150, height:150, borderRadius: 100, border: 'solid 2px #000'} }></div>
+                <h2>NUEVO USUARIO</h2>
 
-                <form action="http://localhost:3002/nuevo-producto" method="post" encType="multipart/form-data">
-                    <InputFile  name='foto' placeholder='Foto' onChange={ handleOnChangePhoto } />
+                <form onSubmit={ createUser }>
 
-                    <StyledInput type='text' placeholder='Nombre' label='Nombre' name='nombre'/>
-                    <StyledInput type='text' placeholder='Precio' label='Precio' name='precio'/>
+                    <StyledInput type='text' placeholder='Nombre' label='Nombre' name='nombre' required/>
+                    <StyledInput type='text' placeholder='Contraseña' label='Contraseña' name='pswd' required/>
+                    <label>
+                        <p>Rol</p>
+                        <select name="rol">
+                            <option value="0">Usuario</option>
+                            <option value="1" selected>Administrador</option>
+                        </select>
+                    </label>
 
                     <ButtonGroup>
                         <ControlButton type='submit' className="bg-primary">GUARDAR</ControlButton>
@@ -195,7 +201,7 @@ export default function Productos(){
                     </ButtonGroup>
                 </form>
 
-                <h2>LISTA DE PRODUCTOS</h2>
+                <h2>LISTA DE USUARIOS</h2>
 
                 <div style={ { overflowX: 'auto'}}>
                     <StyledTable>
@@ -209,9 +215,8 @@ export default function Productos(){
                             { tableData ? 
                                 tableData.map( (item, index) => {
                                     return <tr key={index}>
-                                        <td><img src={ item.img }  style={ {maxWidth: 90} }/></td>
-                                        <td>{ item.name }</td>
-                                        <td>{ item.price }</td>
+                                        <td>{ item.nombre }</td>
+                                        <td>{ item.rol === 1 ? 'Administrador' : 'Usuario' }</td>
                                         <td><Button className="bg-red" onClick={ () => openDeleteModal(item) }><FontAwesomeIcon icon={faTimes} /> Eliminar</Button> </td>
                                         <td><Button className="bg-blue" onClick={ () => openEditModal(item) }><FontAwesomeIcon icon={faPen} /> Editar</Button> </td>
                                     </tr>
@@ -228,18 +233,18 @@ export default function Productos(){
 
             <style>
                 {
-                    
                     `
-                        .user-profile-preview{
-                            background-image: url('${currentUserImg}');
-                            background-repeat: no-repeat;
-                            background-size: cover;
-                            backgorund-position: center;
+                        label p{
+                            font-weight: 600;
                         }
 
+                        select{
+                            padding: 5px;
+                        }
                     `
                 }
             </style>
+
         </Layout>
     );
 }

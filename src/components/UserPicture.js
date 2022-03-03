@@ -22,7 +22,7 @@ const UserPictureContainer = styled.div`
 export default function UserPicture(props){
     return(
         <UserPictureContainer>
-            <p>DF</p>
+            <p>{ localStorage.getItem('username').substring(0,2).toUpperCase() }</p>
         </UserPictureContainer>
     );
 }

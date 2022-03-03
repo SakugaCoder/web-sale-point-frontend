@@ -1,13 +1,11 @@
 import styled from "styled-components";
 
 
-const primary_color = '#26C485';
-
 
 const StyledButton = styled.button`
     display: block;
     border: solid 1px transparent;
-    border-radius: 20px;
+    border-radius: 60px;
     font-weight: 700;
     font-size: 18px;
 
