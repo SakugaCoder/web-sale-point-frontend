@@ -1,6 +1,6 @@
 const getTotal = (items) => {
     let total = 0;
-    console.log('getting total');
+    // console.log('getting total');
     items.forEach( (item,index) => {
         total += item.price * item.kg;
     });

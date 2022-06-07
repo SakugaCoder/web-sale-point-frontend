@@ -7,7 +7,7 @@ import Input, { InputFile } from "../components/Input/Input";
 import Button from "../components/Button";
 
 import { useState, useRef, useEffect} from 'react';
-import { getItems, updateItem, deleteItem, insertItem } from "../utils/SPAPPI";
+import { getItems, updateItem, deleteItem, insertItem } from "../utils/SP_APPI";
 import Modal from "../components/Modal/Modal";
 import useModal from "../hooks/useModal";
 
@@ -16,7 +16,6 @@ const Container = styled.div`
 `;
 
 const StyledInput = styled(Input)`
-    background-color: red;
 `;
 
 const ButtonGroup = styled.div`
@@ -38,13 +37,13 @@ const StyledTable = styled.table`
     border-collapse: collapse;
     border: 1px solid black;
     width: 100%;
-
+    font-size: 22px;
     tbody tr:nth-child(even) {
         background-color: #eee;
     }
 
     td{
-        padding: 10px;
+        padding: 5px;
     }
       
     thead tr {
@@ -53,12 +52,16 @@ const StyledTable = styled.table`
         text-align: left;
     }
 `;
-
 export default function Clientes(){
     const [tableData, setTableData] = useState(null);
-    const { modalState, setModalState, handleModalClose } = useModal();
+    const [currentUserImg, setCurrentUserImg] = useState('');
+    const {modalState, setModalState, handleModalClose } = useModal();
+    const [username, setUsername] = useState(null);
+    const [error, setError] = useState('');
 
-    const fields = ['Nombre', 'Telefono','Eliminar', 'Modificar'];
+    const userImgRef = useRef();
+    const fileTypes = ['image/png', 'image/jpg', 'image/jpeg'];
+    const fields = ['Imagen', 'Nombre', 'Telefono','Eliminar', 'Modificar'];
 
     
     
@@ -68,8 +71,28 @@ export default function Clientes(){
             setTableData(res);
             console.log(res);
         }
-        
-        
+    };
+
+    const handleOnChangePhoto = (evt) => {
+        console.log(evt.target.files);
+        if(evt.target.files.length > 0){
+            let file = evt.target.files[0];
+            console.log(file);
+            if(fileTypes.includes(file.type)){
+                let fr = new FileReader()
+                if(fr){
+                    fr.readAsDataURL(file);
+                }
+    
+                fr.onloadend = ()  => {
+                    //console.log(fr.result);
+                    setCurrentUserImg(fr.result);
+                }
+            }
+            else{
+                alert('Tipo de archivo no permitido');
+            }
+        }
     };
 
     const createClient = async evt =>{
@@ -173,26 +196,45 @@ export default function Clientes(){
     }, []);
 
     
+    const checkClientName = evt => {
+        evt.preventDefault();
+        console.log('checking name');
+        console.log(evt);
+        let username = evt.target.nombre.value;
+        let user_exist = tableData.find( client => client.nombre.toLowerCase() == username.toLowerCase());
+        if(user_exist){
+            setError('Error. usuario existe');
+        }
 
+        else{
+            evt.target.action="http://localhost:3002/nuevo-cliente";
+            evt.target.method="post";
+            evt.target.submit();
+        }
+    }
     
 
     return(
-        <Layout>
+        <Layout active='Clientes'>
             <Container>
                 <h2>NUEVO CLIENTE</h2>
 
-                <form onSubmit={ createClient }>
+                <div ref={userImgRef} className='user-profile-preview rounded-full m-auto shadow-lg' style={ {width: 150, height:150, borderRadius: 100, border: 'solid 2px #000'} }></div>
 
+
+                <form encType="multipart/form-data" onSubmit={ checkClientName }>
+                    <InputFile  name='foto' placeholder='Foto' onChange={ handleOnChangePhoto } />
                     <StyledInput type='text' placeholder='Nombre' label='Nombre' name='nombre' required/>
                     <StyledInput type='text' placeholder='Telefono' label='Telefono' name='telefono'/>
-
+                    <p style={ {color: '#ff0000'} } > { error } </p>
                     <ButtonGroup>
                         <ControlButton type='submit' className="bg-primary">GUARDAR</ControlButton>
-                        <ControlButton type='reset' className="bg-red" >CANCELAR</ControlButton>
+                        <ControlButton type='reset' onClick={ () => setError('') } className="bg-red" >CANCELAR</ControlButton>
                     </ButtonGroup>
                 </form>
 
                 <h2>LISTA DE CLIENTES</h2>
+
 
                 <div style={ { overflowX: 'auto'}}>
                     <StyledTable>
@@ -206,6 +248,7 @@ export default function Clientes(){
                             { tableData ? 
                                 tableData.map( (item, index) => {
                                     return <tr key={index}>
+                                        <td><div className="user-profile-img" style={ {backgroundImage: `url('${ item.imagen }')`} }> </div></td>
                                         <td>{ item.nombre }</td>
                                         <td>{ item.telefono }</td>
                                         <td><Button className="bg-red" onClick={ () => openDeleteModal(item) }><FontAwesomeIcon icon={faTimes} /> Eliminar</Button> </td>
@@ -222,6 +265,28 @@ export default function Clientes(){
                 { modalState.content }
             </Modal>
 
+            <style>
+                {
+                    
+                    `
+                        .user-profile-preview{
+                            background-image: url('${currentUserImg}');
+                            background-repeat: no-repeat;
+                            background-size: cover;
+                            backgorund-position: center;
+                        }
+
+                        .user-profile-img{
+                            width: 60px;
+                            height: 60px;
+                            background-size: cover;
+                            background-repeat: no-repeat;
+                            border-radius: 50%;
+                        }
+
+                    `
+                }
+            </style>
         </Layout>
     );
 }

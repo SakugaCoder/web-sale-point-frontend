@@ -5,7 +5,7 @@ const ProductCardStyled = styled.div`
     border-radius: 20px;
     display: flex;
     flex-direction: column;
-    padding: 10px;
+    padding: 5px;
     transition: all ease 0.2s;
     &:hover{
         border-color: #000;
@@ -14,7 +14,7 @@ const ProductCardStyled = styled.div`
 `;
 
 const ProductCardImage = styled.img`
-    max-width: 50%;
+    max-width: 70%;
     margin: auto;
 `;
 
@@ -22,7 +22,7 @@ const ProductCardPrice = styled.div`
     font-weight: 800;
     font-size: 16px;
     text-align: center;
-    margin-top: 10px;
+    margin-top: 5px;
 `;
 
 export default function ProductCard(props){

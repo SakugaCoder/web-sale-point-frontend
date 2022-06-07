@@ -14,6 +14,7 @@ import Chalanes from './pages/Chalanes';
 import Suppliers from './pages/Suppliers';
 import Users from './pages/Users';
 import Shopping from './pages/Shopping';
+import CashRegister from './pages/CashRegister';
 
 
 ReactDOM.render(
@@ -28,6 +29,7 @@ ReactDOM.render(
         <Route path="/proveedores" element={ <Suppliers /> } />
         <Route path="/usuarios" element={ <Users /> } />
         <Route path="/compras" element={ <Shopping /> } />
+        <Route path="/caja" element={ <CashRegister /> } />
         <Route path="/" element={ <Login />} />
 
       </Routes>

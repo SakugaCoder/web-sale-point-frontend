@@ -2,7 +2,7 @@ import styled from "styled-components";
 
 import Input from "../components/Input/Input";
 import Button from "../components/Button";
-import { checkUser } from "../utils/SPAPPI";
+import { checkUser } from "../utils/SP_APPI";
 
 const Container = styled.div`
     width: 100%;
@@ -45,6 +45,7 @@ export default function Login(){
         if(res.err === false){
             localStorage.setItem('session-started', true);
             localStorage.setItem('username', data.name);
+            localStorage.setItem('sp_rol', res.rol);
             window.location.assign('/inicio');
         }
         else{

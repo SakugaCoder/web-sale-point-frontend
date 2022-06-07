@@ -9,6 +9,7 @@ const TicketContainer = styled.div`
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+
 `;
 
 const TicketContent = styled.div`
@@ -16,6 +17,15 @@ const TicketContent = styled.div`
     padding: 10px;
     border-radius: 10px;
     border: solid 1px #DAEFE7;
+    max-height: 50vh;
+    overflow-y: auto;
+    h3{
+        font-size: 26px;
+    }
+
+    p{
+        font-size: 20px;
+    }
 `;
 
 const TicketButtons = styled.div`
@@ -34,8 +44,6 @@ const Total = styled.div`
 
 export default function Ticket(props){
 
-
-
     function printPageArea(){
         var printContent = document.getElementById('ticket-content');
         var WinPrint = window.open('', '', 'width=900,height='+printContent.clientHeight);
@@ -50,7 +58,6 @@ export default function Ticket(props){
         <TicketContainer>
             <TicketContent id="ticket-content">
                     <h3 style={ {textAlign: 'center' }}>Pedido</h3>
-                    <br/>
                     { props.items.map( item => 
                         <p>{ item.name } <strong>x</strong> { item.kg } kg = <strong> ${ Math.floor(Number(item.price) * item.kg) }</strong></p>
                     )}
@@ -59,7 +66,8 @@ export default function Ticket(props){
             </TicketContent>
 
             <TicketButtons>
-                <TicketButton className="bg-primary" onClick={ props.payOrder }>PAGO</TicketButton>
+                <TicketButton className="bg-primary" onClick={ props.payOrder }>COBRAR</TicketButton>
+                { props.restrictedMode ? null : <TicketButton className="bg-blue" onClick={ () => props.openPaymentModal(true) }>FIAR PEDIDO</TicketButton> }
                 <TicketButton className="bg-red" onClick={ props.cancelOrder }>CANCELAR</TicketButton>
             </TicketButtons>
         </TicketContainer>

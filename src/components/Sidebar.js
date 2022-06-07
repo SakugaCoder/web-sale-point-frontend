@@ -7,7 +7,7 @@ import {
     faClipboardList,
     faBoxes,
     faUserTie,
-    faShippingFast,
+    faCashRegister,
     faShoppingBasket,
     faHandsHelping,
     faUserCog
@@ -31,69 +31,102 @@ const SidebarLogo = styled.div`
 `;
 
 export default function Sidebar(props){
+    console.log(Number(props.rol) === 1);
     const user_menu = [
         {
             name: 'Inicio',
             href: '/inicio',
             icon: faTh,
-            submenu: false
+            submenu: false,
+            admin: false
         },
         {
             name: 'Pedidos',
             href: '/pedidos',
             icon: faClipboardList,
-            submenu: false
+            submenu: false,
+            admin: false
         },
         {
             name: 'Productos',
             href: '/productos',
             icon: faBoxes,
-            submenu: false
+            submenu: false,
+            admin: false
         },
         {
             name: 'Clientes',
             href: '/clientes',
             icon: faUserTie,
-            submenu: false
+            submenu: false,
+            admin: true
         },
-        {
+        /*{
             name: 'Envios',
             href: '/envios',
             icon: faShippingFast,
-            submenu: false
-        },
+            submenu: false,
+            admin: true
+        },*/
         {
             name: 'Compras',
             href: '/compras',
             icon: faShoppingBasket,
-            submenu: false
+            submenu: false,
+            admin: true
         },
         {
             name: 'Chalanes',
             href: '/chalanes',
             icon: faHandsHelping,
-            submenu: false
+            submenu: false,
+            admin: true
         },
         {
             name: 'Proveedores',
             href: '/proveedores',
             icon: faBoxes,
-            submenu: false
+            submenu: false,
+            admin: true
         },
         {
             name: 'Usuarios',
             href: '/usuarios',
             icon: faUserCog,
-            submenu: false
+            submenu: false,
+            admin: true
         },
+        {
+            name: 'Caja',
+            href: '/caja',
+            icon: faCashRegister,
+            submenu: false,
+            admin: true
+        }
     ];
+
 
     return(
         <SidebarContainer>
             <SidebarLogo>
                 PVOL
             </SidebarLogo>
-            { user_menu.map( (item,index) => <SidebarItem className={props.active ===  item.name ? 'sidebar-item-active' : ''} name={ item.name } href={ item.href } icon={ item.icon } key={index}  />) }
+            { Number(props.rol) === 1 
+            ?
+                user_menu.map( (item,index) => <SidebarItem active={props.active ===  item.name ? true : false} name={ item.name } href={ item.href } icon={ item.icon } key={index}  />) 
+            :
+                (user_menu.filter( item => !item.admin)).map( (item,index) => <SidebarItem className={props.active ===  item.name ? true : false} name={ item.name } href={ item.href } icon={ item.icon } key={index}  />) 
+            }
+
+            <style>
+                {
+                    `
+                        .sidebar-item-active{
+                            background-color: red;
+                        }
+                    `
+                }
+            </style>
         </SidebarContainer>
     );
 }

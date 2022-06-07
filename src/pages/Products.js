@@ -7,7 +7,7 @@ import Input, { InputFile } from "../components/Input/Input";
 import Button from "../components/Button";
 
 import { useState, useRef, useEffect} from 'react';
-import { getItems, updateItem, deleteItem } from "../utils/SPAPPI";
+import { getItems, updateItem, deleteItem } from "../utils/SP_APPI";
 import Modal from "../components/Modal/Modal";
 import useModal from "../hooks/useModal";
 
@@ -38,13 +38,13 @@ const StyledTable = styled.table`
     border-collapse: collapse;
     border: 1px solid black;
     width: 100%;
-
+    font-size: 22px;
     tbody tr:nth-child(even) {
         background-color: #eee;
     }
 
     td{
-        padding: 10px;
+        padding: 5px;
     }
       
     thead tr {
@@ -178,7 +178,7 @@ export default function Productos(){
     
 
     return(
-        <Layout>
+        <Layout active='Productos'>
             <Container>
                 <h2>NUEVO PRODUCTO</h2>
                 <div ref={userImgRef} className='user-profile-preview rounded-full m-auto shadow-lg' style={ {width: 150, height:150, borderRadius: 100, border: 'solid 2px #000'} }></div>

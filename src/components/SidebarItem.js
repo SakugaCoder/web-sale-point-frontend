@@ -18,6 +18,9 @@ const SidebarItemContainer = styled(Link)`
         cursor: pointer;
         border-left-color: #000;
     }
+
+    background: ${props => props.active ? '#26C485' : 'none'};
+    border-left-color: ${props => props.active ? '#000' : 'none'};
 `;
 
 const SidebarItemContent = styled.div`
@@ -39,7 +42,7 @@ const SidebarItemText = styled.p`
 
 export default function SidebarItem(props){
     return(
-        <SidebarItemContainer to={props.href}>
+        <SidebarItemContainer to={props.href} active={props.active}>
             <SidebarItemContent>
                 <SidebarItemIcon>
                     <FontAwesomeIcon icon={ (props.icon) }  size='lg' />

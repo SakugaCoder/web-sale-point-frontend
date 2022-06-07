@@ -8,6 +8,17 @@ const StyledButton = styled.button`
     border-radius: 60px;
     font-weight: 700;
     font-size: 18px;
+    ${ props => props.big ? 'padding: 20px 15px;' : '    padding: 20px 15px;'}
+
+    ${props => props.medium ?`
+        text-transform: uppercase;
+        padding: 15px 10px;
+        font-size: 18px;
+        border-radius: 5px;
+        display: inline-block;
+    ` : ''}
+
+    ${props => props.ml ? 'margin-left: 5px;' : ''}
 
     &:hover{
         cursor: pointer;
@@ -15,7 +26,6 @@ const StyledButton = styled.button`
         border-color: #000;
     }
 
-    ${ props => props.big ? 'padding: 20px 15px;' : '    padding: 20px 15px;'}
 `;
 
 export default StyledButton;

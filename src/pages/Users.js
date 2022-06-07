@@ -7,7 +7,7 @@ import Input from "../components/Input/Input";
 import Button from "../components/Button";
 
 import { useState, useEffect} from 'react';
-import { getItems, updateItem, deleteItem, insertItem } from "../utils/SPAPPI";
+import { getItems, updateItem, deleteItem, insertItem } from "../utils/SP_APPI";
 import Modal from "../components/Modal/Modal";
 import useModal from "../hooks/useModal";
 
@@ -38,13 +38,14 @@ const StyledTable = styled.table`
     border-collapse: collapse;
     border: 1px solid black;
     width: 100%;
+    font-size: 22px;
 
     tbody tr:nth-child(even) {
         background-color: #eee;
     }
 
     td{
-        padding: 10px;
+        padding: 5px;
     }
       
     thead tr {
@@ -179,7 +180,7 @@ export default function Suppliers(){
 
 
     return(
-        <Layout>
+        <Layout active='Usuarios'>
             <Container>
                 <h2>NUEVO USUARIO</h2>
 

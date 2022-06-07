@@ -170,43 +170,40 @@ export default function Suppliers(){
 
 
     return(
-        <Layout active='Proveedores'>
+        <Layout active='Caja'>
             <Container>
-                <h2>NUEVO PROVEEDOR</h2>
+                <h2>ESTADO CAJA</h2>
+                <div style={ {display: 'flex', justifyContent: 'space-around', fontSize: '20px'} }>
+                    <div>
+                        <h3>Retiros: </h3><p>(4) $1245</p>
+                    </div>
+                    <div>
+                        <h3>Ingresos: </h3><p>$5332</p>
+                    </div>
+                    <div>
+                        <h3>Total: </h3><p>$4212</p>
+                    </div>
+                </div>
+
+                <h2>APERTURA DE CAJA</h2>
 
                 <form onSubmit={ createSupplier }>
 
-                    <StyledInput type='text' placeholder='Nombre' label='Nombre' name='nombre' required/>
+                    <StyledInput type='text' placeholder='Fondo' label='Fondo' name='Fondo' required/>
 
                     <ButtonGroup>
-                        <ControlButton type='submit' className="bg-primary">GUARDAR</ControlButton>
+                        <ControlButton type='submit' className="bg-primary">ABRIR CAJA</ControlButton>
                         <ControlButton type='reset' className="bg-red" >CANCELAR</ControlButton>
                     </ButtonGroup>
                 </form>
 
-                <h2>LISTA DE PROVEEDORES</h2>
+                <h2 style={ {margin: '60px 0px 10px 0px'} }>CIERRE DE CAJA</h2>
+                <form onSubmit={ createSupplier }>
+                    <ButtonGroup>
+                        <ControlButton type='reset' className="bg-red" >CERRAR CAJA</ControlButton>
+                    </ButtonGroup>
+                </form>
 
-                <div style={ { overflowX: 'auto'}}>
-                    <StyledTable>
-                        <thead>
-                            <tr>
-                                { fields.map( (item, index) => <td key={index}> { item} </td>)}
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            { tableData ? 
-                                tableData.map( (item, index) => {
-                                    return <tr key={index}>
-                                        <td>{ item.nombre }</td>
-                                        <td><Button className="bg-red" onClick={ () => openDeleteModal(item) }><FontAwesomeIcon icon={faTimes} /> Eliminar</Button> </td>
-                                        <td><Button className="bg-blue" onClick={ () => openEditModal(item) }><FontAwesomeIcon icon={faPen} /> Editar</Button> </td>
-                                    </tr>
-                                })
-                            : null}
-                        </tbody>
-                    </StyledTable>
-                </div>
             </Container>
 
             <Modal title='Mi titulo' visible={ modalState.visible }  handleModalClose={  handleModalClose } >
