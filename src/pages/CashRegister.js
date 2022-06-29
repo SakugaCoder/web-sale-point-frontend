@@ -5,9 +5,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes, faPen } from "@fortawesome/free-solid-svg-icons";
 import Input from "../components/Input/Input";
 import Button from "../components/Button";
+import Keypad from "../components/Keypad";
 
 import { useState, useEffect} from 'react';
-import { getItems, updateItem, deleteItem, insertItem } from "../utils/SP_APPI";
+import { getItems, updateItem, deleteItem, insertItem, SP_API } from "../utils/SP_APPI";
 import Modal from "../components/Modal/Modal";
 import useModal from "../hooks/useModal";
 
@@ -55,20 +56,47 @@ const StyledTable = styled.table`
     }
 `;
 
+const PaymentAmount = styled.p` 
+    font-size: 36px;
+    font-weight: 600;
+    text-align: center;
+`;
 export default function Suppliers(){
     const [tableData, setTableData] = useState(null);
+    const [cashRegisterStatus, setCashRegisterStatus] = useState(null);
     const { modalState, setModalState, handleModalClose } = useModal();
+    const { modalState: withdrawModalState, setModalState: setWithdrawModalState, handleModalClose: handleWithdrawModalClose } = useModal();
+
+    const [ currentNumber, setCurrentNumber ] = useState('');
+    const [ cashRegisterRecords, setCashRegisterRecords ]  = useState(null);
+    const [filters, setFilters] = useState({fecha: null});
+
 
     const fields = ['Nombre', 'Eliminar', 'Modificar'];
 
-    
-    
     const initialFunction = async () => {
         let res = await getItems('proveedores');
+        let res_cash_register = await getItems('estado-caja');
+        let res_cash_register_records = await getItems('cierres-caja');
+        console.log(res_cash_register_records.cierres_caja);
+        setCashRegisterRecords(res_cash_register_records.cierres_caja);
+
         if(res.err !== true){
             setTableData(res);
             console.log(res);
-        }      
+        }
+        
+        if(res_cash_register.err !== true){
+            if(res_cash_register.caja){
+                console.log(res_cash_register);
+                setCashRegisterStatus(
+                    {...res_cash_register,
+                        retiros: res_cash_register.retiros ? res_cash_register.retiros : 0,
+                        ingresos: res_cash_register.ingresos ? res_cash_register.ingresos : 0
+                    });
+            }
+        }
+        
     };
 
     const createSupplier = async evt =>{
@@ -111,6 +139,39 @@ export default function Suppliers(){
         }
     };
 
+    const openCashRegister = async evt => {
+        evt.preventDefault();
+        let fondo = evt.target.fondo.value;
+        if(fondo){
+            let data = { fondo };
+            let res = await SP_API('http://localhost:3002/abrir-caja', 'POST', data);
+            console.log(res);
+        }
+        window.location.reload();
+    }
+    
+    const closeCashRegister = async evt => {
+        evt.preventDefault();
+        let data = {
+            ingresos: cashRegisterStatus.ingresos,
+            retiros: cashRegisterStatus.retiros,
+            total: cashRegisterStatus.ingresos - cashRegisterStatus.retiros + cashRegisterStatus.caja.fondo
+        };
+
+        let res = await SP_API('http://localhost:3002/cerrar-caja', 'POST', data);
+        console.log(res);
+        window.location.reload();
+    }
+
+    const withdrawMoney = async evt => {
+        evt.preventDefault();
+        let monto = evt.target.monto.value;
+        let data = {monto}
+        let res = await SP_API('http://localhost:3002/retirar-dinero', 'POST', data);
+        console.log(res);
+        window.location.reload();
+    }
+
     const editModal = item_data => {
         return <div className="product-card-modal">
 
@@ -126,7 +187,6 @@ export default function Suppliers(){
         </form>
     </div>
     };
-
 
     const deleteSupplier = async evt => {
         evt.preventDefault();
@@ -144,9 +204,33 @@ export default function Suppliers(){
         }
     }
 
+    const confirmationModal = (_date) => {
+        return <div className="product-card-modal">
 
-    const openDeleteModal = data => {
-        setModalState({visible: true, content: deleteModal(data)});
+        <p>Confirma hacer el cierre de caja del dia <strong style={ {fontSize: 16}}>{ _date }</strong></p>
+            <form className="modal-form" onSubmit={ closeCashRegister }>
+                <div className="modal-buttons">
+                    <Button className="bg-red" type='submit'>SI, CERRAR CAJA</Button>
+                    <Button className="bg-white" onClick={ handleModalClose }>CANCELAR</Button>
+                </div>
+            </form>
+        </div>
+    };
+
+    const openConfirmationModal = data => {
+        let date_ob = new Date();
+        // current date
+        // adjust 0 before single digit date
+        let date = ("0" + date_ob.getDate()).slice(-2);
+    
+        // current month
+        let month = ("0" + (date_ob.getMonth() + 1)).slice(-2);
+    
+        // current year
+        let year = date_ob.getFullYear();
+
+        let datetime = year + "-" + month + "-" + date;
+        setModalState({visible: true, content: confirmationModal(datetime)});
     };
 
     const deleteModal = item_data => {
@@ -168,47 +252,113 @@ export default function Suppliers(){
         initialFunction();
     }, []);
 
-
     return(
         <Layout active='Caja'>
             <Container>
-                <h2>ESTADO CAJA</h2>
-                <div style={ {display: 'flex', justifyContent: 'space-around', fontSize: '20px'} }>
-                    <div>
-                        <h3>Retiros: </h3><p>(4) $1245</p>
+                <h2>ADMINISTRACIÓN DE CAJA</h2>
+                { cashRegisterStatus ? cashRegisterStatus.caja.estado === 'abierta' || cashRegisterStatus.caja.estado === 'cerrada' ? 
+                <>
+                    <h2>ESTADO CAJA</h2>
+                    <div style={ {display: 'flex', justifyContent: 'space-around', fontSize: '20px'} }>
+                        <div>
+                            <h3>Retiros: </h3><p>${ cashRegisterStatus ? cashRegisterStatus.retiros : null} </p>
+                        </div>
+                        <div>
+                            <h3>Ingresos: </h3><p>${ cashRegisterStatus ? cashRegisterStatus.ingresos : null}</p>
+                        </div>
+
+                        <div>
+                            <h3>Fondo: </h3><p>${ cashRegisterStatus ? cashRegisterStatus.caja.fondo : null}</p>
+                        </div>
+
+                        <div>
+                            <h3>Total: </h3><p>${ cashRegisterStatus ? cashRegisterStatus.ingresos - cashRegisterStatus.retiros + cashRegisterStatus.caja.fondo: null}</p>
+                        </div>
                     </div>
-                    <div>
-                        <h3>Ingresos: </h3><p>$5332</p>
+
+                    <h2>LISTA DE CIERRES DE CAJA</h2>
+
+                    <div style={ { overflowX: 'auto'}}>
+                        <StyledTable>
+                            <thead>
+                                <tr>
+                                    <td>Fecha <input style={ {fontSize: 18} } type={'date'} name='date' onChange={ (evt) => setFilters({fecha: evt.target.value})}/></td>
+                                    <td>Fondo</td>
+                                    <td>Ingresos</td>
+                                    <td>Retiros</td>
+                                    <td>Total</td>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                            { cashRegisterRecords ? 
+                                    cashRegisterRecords.filter( item => {
+                                            // Filter by date
+                                            if(filters.fecha)
+                                                return item.fecha === filters.fecha;
+                                            else
+                                                return item;	
+                                    }).map( (item, index) => {
+                                    return <tr key={index}>
+                                        <td>${ item.fecha }</td>
+                                        <td>${ item.fondo }</td>
+                                        <td>${ item.ingresos }</td>
+                                        <td>${ item.retiros }</td>
+                                        <td>${ item.total }</td>
+                                    </tr>
+                                })
+                            : null}
+                            </tbody>
+                        </StyledTable>
                     </div>
-                    <div>
-                        <h3>Total: </h3><p>$4212</p>
-                    </div>
-                </div>
+                </>
+                : null : null }
 
-                <h2>APERTURA DE CAJA</h2>
+                { cashRegisterStatus ? null : 
+                <>
+                    <h2>APERTURA DE CAJA</h2>
 
-                <form onSubmit={ createSupplier }>
+                    <form onSubmit={ openCashRegister }>
+                        <input type='hidden' value={currentNumber ? currentNumber : '0'} name='fondo' required/>
+                        <PaymentAmount>Fondo: ${ currentNumber ? currentNumber : '0'}</PaymentAmount>
+                        <Keypad currentNumber={currentNumber} setCurrentNumber={setCurrentNumber} />
+                        <ButtonGroup>
+                            <ControlButton type='submit' className="bg-primary">ABRIR CAJA</ControlButton>
+                            <ControlButton type='reset' className="bg-red" onClick={ () => setCurrentNumber('') }>CANCELAR</ControlButton>
+                        </ButtonGroup>
+                    </form>
+                </>
+                }
 
-                    <StyledInput type='text' placeholder='Fondo' label='Fondo' name='Fondo' required/>
+                { cashRegisterStatus ? cashRegisterStatus.caja.estado === 'abierta' ? 
+                <>  
+                    <h2>RETIROS</h2>
 
-                    <ButtonGroup>
-                        <ControlButton type='submit' className="bg-primary">ABRIR CAJA</ControlButton>
-                        <ControlButton type='reset' className="bg-red" >CANCELAR</ControlButton>
-                    </ButtonGroup>
-                </form>
+                    <Button className='bg-primary' onClick={ () => setWithdrawModalState({...withdrawModalState, visible: true}) }>REALIZAR RETIRO</Button>
 
-                <h2 style={ {margin: '60px 0px 10px 0px'} }>CIERRE DE CAJA</h2>
-                <form onSubmit={ createSupplier }>
-                    <ButtonGroup>
-                        <ControlButton type='reset' className="bg-red" >CERRAR CAJA</ControlButton>
-                    </ButtonGroup>
-                </form>
-
-            </Container>
+                    <h2 style={ {margin: '60px 0px 10px 0px'} }>CIERRE DE CAJA</h2>
+                        <ButtonGroup>
+                            <ControlButton type='submit' className="bg-red" onClick={ openConfirmationModal } >CERRAR CAJA</ControlButton>
+                        </ButtonGroup>
+                </>
+                : null : null }
 
             <Modal title='Mi titulo' visible={ modalState.visible }  handleModalClose={  handleModalClose } >
                 { modalState.content }
             </Modal>
+
+            <Modal visible={ withdrawModalState.visible }  handleModalClose={  handleWithdrawModalClose } >
+                <form onSubmit={ withdrawMoney }>
+                        <input type='hidden' value={currentNumber ? currentNumber : '0'} name='monto' required/>
+                        <PaymentAmount>Retiro: ${ currentNumber ? currentNumber : '0'}</PaymentAmount>
+                        <Keypad currentNumber={currentNumber} setCurrentNumber={setCurrentNumber} />
+                        <ButtonGroup>
+                            <ControlButton type='submit' className="bg-primary">RETIRAR</ControlButton>
+                            <ControlButton type='reset' className="bg-red" onClick={ () => { setWithdrawModalState({...withdrawModalState, visible: false}); setCurrentNumber('')} }>CANCELAR</ControlButton>
+                        </ButtonGroup>
+                </form>
+            </Modal>
+            </Container>
 
         </Layout>
     );

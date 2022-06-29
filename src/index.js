@@ -15,7 +15,7 @@ import Suppliers from './pages/Suppliers';
 import Users from './pages/Users';
 import Shopping from './pages/Shopping';
 import CashRegister from './pages/CashRegister';
-
+import Inventory from './pages/Inventory';
 
 ReactDOM.render(
   <BrowserRouter>
@@ -30,6 +30,7 @@ ReactDOM.render(
         <Route path="/usuarios" element={ <Users /> } />
         <Route path="/compras" element={ <Shopping /> } />
         <Route path="/caja" element={ <CashRegister /> } />
+        <Route path="/inventario" element={ <Inventory /> } />
         <Route path="/" element={ <Login />} />
 
       </Routes>

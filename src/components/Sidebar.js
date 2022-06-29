@@ -5,12 +5,13 @@ import SidebarItem from "./SidebarItem";
 import { 
     faTh,
     faClipboardList,
+    faClipboardCheck,
     faBoxes,
     faUserTie,
     faCashRegister,
     faShoppingBasket,
     faHandsHelping,
-    faUserCog
+    faUserCog,
 } from "@fortawesome/free-solid-svg-icons";
 
 const SidebarContainer = styled.div`
@@ -43,7 +44,7 @@ export default function Sidebar(props){
         {
             name: 'Pedidos',
             href: '/pedidos',
-            icon: faClipboardList,
+            icon: faClipboardCheck,
             submenu: false,
             admin: false
         },
@@ -100,6 +101,13 @@ export default function Sidebar(props){
             name: 'Caja',
             href: '/caja',
             icon: faCashRegister,
+            submenu: false,
+            admin: true
+        },
+        {
+            name: 'Inventario',
+            href: '/inventario',
+            icon: faClipboardList,
             submenu: false,
             admin: true
         }

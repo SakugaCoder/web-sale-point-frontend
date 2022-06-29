@@ -201,6 +201,7 @@ export default function Main(){
     const [ currentProduct, setCurrentProduct ] = useState(null);
     const [ restrictedMode, setRestrictedMode ] = useState(false);
     const [ contraEntrega, setContraEntrega ] = useState(false);
+    const [cashRegister, setCashRegister] = useState(null);
 
     const getProducts = async () => {
         let products = await getItems('Productos');
@@ -217,6 +218,20 @@ export default function Main(){
     const getChalanes = async () => {
         let chalanes = await getItems('Chalanes');
         setChalanes(chalanes);
+        // console.log(products);
+    };
+
+    const getCashRegister = async () => {
+        let cash_register = await SP_API('http://localhost:3002/estado-caja', 'GET');
+        console.log(cash_register);
+        if(!cash_register.caja){
+            setModalState({visible: true, content: alert('Favor de abrir caja para realizar pedidos') });
+        }
+        else if(cash_register.caja.estado === 'cerrada'){
+            setModalState({visible: true, content: alert('Caja cerrada. Favor de abrir la caja el dia siguiente para realizar pedidos') });
+        }
+
+        setCashRegister(cash_register);
         // console.log(products);
     };
 
@@ -271,10 +286,8 @@ export default function Main(){
                 console.log(order);
                 handleModalClose();
             }
-        }
 
-        else{
-            if(trusted === false){
+            else{
                 if(getTotal(basket) <= payment){
                     console.log('pago normal');
                     let order = {
@@ -300,28 +313,28 @@ export default function Main(){
                     console.log('Ingresa una cantidad correcta');
                 }
             }
-    
-            else{
-                console.log('fiado');
-                // alert('Error al procesar el pago. Favor de especificar una cantidad mayor o igual al total');
-                let order = {
-                    total: Number(getTotal(basket)),
-                    payment,
-                    items: basket,
-                    client: currentClient,
-                    estado: 2,
-                    chalan: null,
-                    date:  (new Date().toISOString().split(':')[0]).split('T')[0]
-                }
-    
-                let res = await insertItem('pedido', order);
-                if(res.err === false){
-                    window.location.reload();
-                }
-                console.log(res);
-                console.log(order);
-                handleModalClose();
+        }
+
+        else{
+            console.log('fiado');
+            // alert('Error al procesar el pago. Favor de especificar una cantidad mayor o igual al total');
+            let order = {
+                total: Number(getTotal(basket)),
+                payment,
+                items: basket,
+                client: currentClient,
+                estado: 2,
+                chalan: null,
+                date:  (new Date().toISOString().split(':')[0]).split('T')[0]
             }
+
+            let res = await insertItem('pedido', order);
+            if(res.err === false){
+                window.location.reload();
+            }
+            console.log(res);
+            console.log(order);
+            handleModalClose();
         }
     };
 
@@ -411,6 +424,7 @@ export default function Main(){
         getProducts();
         getClients();
         getChalanes();
+        getCashRegister();
     }, []);
 
         /*
@@ -507,6 +521,8 @@ export default function Main(){
     return(
         <Layout active='Inicio'>
             <MainContainer>
+            { cashRegister ? ( cashRegister.caja ? cashRegister.caja.estado === 'abierta' ? 
+                <>
                 <Header>
                     <CustomerStatus>
                         <CustomerData>
@@ -545,9 +561,11 @@ export default function Main(){
                         */
                         }
                     </ProductLeftSide>
-
+                    
                     <Ticket items={ basket } openPaymentModal={openPaymentModal} cancelOrder={ clearBasket } payOrder={ () => openPaymentModal(false) } restrictedMode={ restrictedMode }/>
                 </ProductContainer>
+                </>
+                : null : null ) : null}
             </MainContainer>
 
             { /* Inmutable modal */}
@@ -602,4 +620,4 @@ export default function Main(){
             </Modal>
         </Layout>
     );
-}
+};

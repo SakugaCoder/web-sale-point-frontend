@@ -65,7 +65,7 @@ export default function Suppliers(){
     const [products, setProducts] = useState(null);
     const [suppliers, setSuppliers] = useState(null);
     const { modalState, setModalState, handleModalClose } = useModal();
-    const [filters, setFilters] = useState({fecha: null, proveedor: null});
+    const [filters, setFilters] = useState({fecha: null, proveedor: null, producto: null});
 
     const fields = ['Producto', 'Kg','Fecha', 'Proveedor', 'Eliminar'];
     
@@ -334,6 +334,30 @@ export default function Suppliers(){
         setTableData(shopping);
     }
 
+    function filterData(){
+        return tableData.filter( item => {
+            // Filter by date
+            if(filters.fecha)
+                return item.fecha === filters.fecha;
+            else
+                return item;	
+        }).
+        filter( item => {
+            // Filter by client
+            if(filters.producto)
+                if(filters.producto !== 0)
+                    return filters.producto === item.id_producto
+            return item;
+        }).
+        filter( item => {
+            // Filter by status
+            if(filters.proveedor)
+                if(filters.proveedor !== 0)
+                    return Number(filters.proveedor) === item.id_proveedor;
+            return item;
+        });
+    }
+
     useEffect( () => {
         initialFunction();
     }, []);
@@ -361,7 +385,7 @@ export default function Suppliers(){
                         <p>Proveedor</p>
                         <select name="supplier_id">
                             <option value="0">Proveedor</option>
-                            { suppliers ? suppliers.map(supplier => <option value={ supplier.id }> {supplier.nombre} </option>) : null}
+                            { suppliers ? suppliers.filter( s => s.id !== 4).map(supplier => <option value={ supplier.id }> {supplier.nombre} </option>) : null}
                         </select>
                     </label>
 
@@ -390,12 +414,16 @@ export default function Suppliers(){
                     <StyledTable>
                         <thead>
                             <tr>
-                                <td>Producto</td>
+                                <td><select style={ {fontSize: 20} } name='supplier' onChange={ (evt) => setFilters({fecha: filters.fecha, proveedor: filters.proveedor, producto: Number(evt.target.value)})}>
+                                    <option value="0">Producto</option>
+                                    { products ? products.map(producto => <option value={ producto.id }> {producto.name} </option>) : null }
+                                </select></td>
+
                                 <td>Kg</td>
-                                <td>Fecha <input style={ {fontSize: 18} } type={'date'} name='date' style={ {fontSize: 18} } onChange={ (evt) => setFilters({fecha: evt.target.value, proveedor: filters.proveedor})}/></td>
-                                <td><select style={ {fontSize: 20} } name='supplier' onChange={ (evt) => setFilters({fecha: filters.fecha, proveedor: Number(evt.target.value)})}>
+                                <td>Fecha <input style={ {fontSize: 18} } type={'date'} name='date' onChange={ (evt) => setFilters({fecha: evt.target.value, proveedor: filters.proveedor, producto: filters.producto})}/></td>
+                                <td><select style={ {fontSize: 20} } name='supplier' onChange={ (evt) => setFilters({fecha: filters.fecha, proveedor: Number(evt.target.value), producto: filters.producto })}>
                                 <option value="0">Proveedor</option>
-                                { suppliers ? suppliers.map(supplier => <option value={ supplier.id }> {supplier.nombre} </option>) : null }
+                                { suppliers ? suppliers.filter( s => s.id !== 4).map(supplier => <option value={ supplier.id }> {supplier.nombre} </option>) : null }
                             </select></td>
                                 <td>Eliminar</td>
                             </tr>
@@ -403,17 +431,7 @@ export default function Suppliers(){
 
                         <tbody>
                             { tableData ? 
-                                tableData.filter(item => {
-                                    if(filters.fecha && filters.proveedor)
-                                        return item.fecha === filters.fecha && item.id_proveedor === filters.proveedor;
-                                    else if(filters.fecha && !filters.proveedor)
-                                        return item.fecha === filters.fecha;
-                                    else if(!filters.fecha && filters.proveedor)
-                                        return item.id_proveedor === filters.proveedor;
-                                    else
-                                        return item;
-                                    
-                                }).map( (item, index) => {
+                               filterData().filter(item => item.id_proveedor !== 4).map( (item, index) => {
                                     return <tr key={index}>
                                         <td>{ products ? products.filter( product => item.id_producto === product.id).map( product => product.name) : item.id_producto}</td>
                                         <td>{ item.kg }</td>
