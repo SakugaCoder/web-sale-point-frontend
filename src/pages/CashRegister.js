@@ -1,6 +1,8 @@
 import Layout from "../components/Layout.";
 import styled from "styled-components";
 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faTimes, faPen } from "@fortawesome/free-solid-svg-icons";
 import Input from "../components/Input/Input";
 import Button from "../components/Button";
 import Keypad from "../components/Keypad";
@@ -36,8 +38,13 @@ const ControlButton = styled(Button)`
 const StyledTable = styled.table`
     border-collapse: collapse;
     border: 1px solid black;
-    width: 100%;
     font-size: 22px;
+    overflow: hidden;
+
+    display: inline-block;
+
+    max-height: 320px;
+    overflow-y: scroll;
 
     tbody tr:nth-child(even) {
         background-color: #eee;
@@ -298,7 +305,7 @@ export default function Suppliers(){
                                                 return item;	
                                     }).map( (item, index) => {
                                     return <tr key={index}>
-                                        <td>${ item.fecha }</td>
+                                        <td>{ item.fecha }</td>
                                         <td>${ item.fondo }</td>
                                         <td>${ item.ingresos }</td>
                                         <td>${ item.retiros }</td>
@@ -360,4 +367,4 @@ export default function Suppliers(){
 
         </Layout>
     );
-};
+}
