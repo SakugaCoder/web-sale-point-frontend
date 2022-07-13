@@ -1,8 +1,6 @@
 import Layout from "../components/Layout.";
 import styled from "styled-components";
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTimes, faPen } from "@fortawesome/free-solid-svg-icons";
 import Input from "../components/Input/Input";
 import Button from "../components/Button";
 import Keypad from "../components/Keypad";
@@ -362,4 +360,4 @@ export default function Suppliers(){
 
         </Layout>
     );
-}
+};

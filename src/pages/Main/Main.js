@@ -200,8 +200,16 @@ export default function Main(){
     const [ currentNumber, setCurrentNumber ] = useState('');
     const [ currentProduct, setCurrentProduct ] = useState(null);
     const [ restrictedMode, setRestrictedMode ] = useState(false);
+    const [ kgInterval, setKgInterval] = useState(null);
+    const [ currentKg, setCurrentKg] = useState(0);
     const [ contraEntrega, setContraEntrega ] = useState(false);
     const [cashRegister, setCashRegister] = useState(null);
+
+    const getCurrentKg = async () => {
+        let res_kg = await SP_API('http://localhost:3002/bascula', 'GET');
+
+        setCurrentKg(res_kg.kg_bascula);
+    };
 
     const getProducts = async () => {
         let products = await getItems('Productos');
@@ -371,6 +379,7 @@ export default function Main(){
         setCurrentProduct(product_data);
         if(currentClient){
             setProductModalState({visible: true});
+            setKgInterval(setInterval(getCurrentKg, 900));
         }
 
         else{
@@ -598,7 +607,7 @@ export default function Main(){
             </Modal>
 
             {/* Product card modal */}
-            <Modal title='Product card modal' visible={ productModalState.visible }  handleModalClose={  () => { handleProductModalClose(); setCurrentNumber(''); } } >
+            <Modal title='Product card modal' visible={ productModalState.visible }  handleModalClose={  () => { handleProductModalClose(); setCurrentNumber(''); clearInterval(kgInterval); } } >
                 { currentProduct ? 
                     <ProductCardModal>
                         <img src={currentProduct.img }/>
@@ -607,13 +616,20 @@ export default function Main(){
 
                         <ModalForm onSubmit={ event => addProductToBasket(event, currentProduct) }>
                             { /* <Input placeholder='Cantidad en kg' label='Cantidad en kilogramos' name='kg' required/> */}
-                            <input type='hidden' value={currentNumber ? currentNumber : '0'} name='kg' required/>
-                            <PaymentAmount>{ currentNumber ? currentNumber : '0'} kg</PaymentAmount>
-                            <Keypad currentNumber={currentNumber} setCurrentNumber={setCurrentNumber} />
+                            <input type='hidden' value={ currentKg } name='kg' required/>
+                            <PaymentAmount>{ currentKg } kg</PaymentAmount>
+
                             <ModalButtons>
-                                <Button className="bg-red" onClick={ () => { handleProductModalClose(); setCurrentNumber(''); } }>Cancelar</Button>
-                                <Button type='submit' className="bg-primary">Guardar</Button>
+                                    <Button className="bg-red" onClick={ () => { handleProductModalClose(); setCurrentNumber(''); clearInterval(kgInterval); } }>Cancelar</Button>
+                                    <Button type='submit' className="bg-primary">Guardar</Button>
                             </ModalButtons>
+                            
+                            {
+                            /* 
+                                <Keypad currentNumber={currentNumber} setCurrentNumber={setCurrentNumber} />
+
+                            */
+                            }
                         </ModalForm>
                     </ProductCardModal>
                 : null }
