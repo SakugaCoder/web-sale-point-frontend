@@ -39,6 +39,5 @@ export async function SP_API(url, method, data){
     }
 
     let res = await fetch(url, params);
-    console.log(res);
     return await res.json();
 }

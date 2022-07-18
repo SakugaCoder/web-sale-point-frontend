@@ -201,6 +201,7 @@ export default function Main(){
     const [ currentProduct, setCurrentProduct ] = useState(null);
     const [ restrictedMode, setRestrictedMode ] = useState(false);
     const [ kgInterval, setKgInterval] = useState(null);
+    const [ finalKg, setFinalKg ] = useState(0);
     const [ currentKg, setCurrentKg] = useState(0);
     const [ contraEntrega, setContraEntrega ] = useState(false);
     const [cashRegister, setCashRegister] = useState(null);
@@ -612,18 +613,20 @@ export default function Main(){
                     <ProductCardModal>
                         <img src={currentProduct.img }/>
 
-                        <strong>$ { currentProduct.price }</strong>
+                        <strong style={ {fontSize: 36} }>$ { currentProduct.price } x Kg</strong>
 
-                        <ModalForm onSubmit={ event => addProductToBasket(event, currentProduct) }>
+                        <ModalForm onSubmit={ event => { addProductToBasket(event, currentProduct); setFinalKg(0); }}>
                             { /* <Input placeholder='Cantidad en kg' label='Cantidad en kilogramos' name='kg' required/> */}
-                            <input type='hidden' value={ currentKg } name='kg' required/>
-                            <PaymentAmount>{ currentKg } kg</PaymentAmount>
+                            <input type='hidden' value={ finalKg } name='kg' required/>
+                            <PaymentAmount>En bascula: { currentKg } kg</PaymentAmount>
+                            <PaymentAmount>Peso total: { finalKg } kg</PaymentAmount>
 
                             <ModalButtons>
-                                    <Button className="bg-red" onClick={ () => { handleProductModalClose(); setCurrentNumber(''); clearInterval(kgInterval); } }>Cancelar</Button>
-                                    <Button type='submit' className="bg-primary">Guardar</Button>
+                                    <Button className="bg-red" onClick={ () => { handleProductModalClose(); setCurrentNumber(''); clearInterval(kgInterval); setFinalKg(0); } }>Cancelar</Button>
+                                    <Button className="bg-blue ml" type='button' onClick={ () => { setFinalKg(finalKg+currentKg)} }>Agregar peso</Button>
+                                    <Button type='submit' className="ml bg-primary">Guardar</Button>
                             </ModalButtons>
-                            
+
                             {
                             /* 
                                 <Keypad currentNumber={currentNumber} setCurrentNumber={setCurrentNumber} />

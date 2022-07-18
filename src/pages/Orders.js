@@ -245,6 +245,48 @@ export default function Pedidos(){
         }
     }
 
+    const getOrderDetail = async order_id => {
+        let res_order_detail = await getItems('pedido/'+order_id);
+        return res_order_detail;
+    };
+
+    const getOrderStatusText = n => {
+        switch(n){
+            case 1:
+                return 'Pagado';
+            case 2:
+                return 'Adeudo';
+            case 3:
+                return 'Enviado';
+            case 4:
+                return 'PCE';
+
+            default:
+                return '';
+        }
+    }
+
+    const printTicket = async ticket_order => {
+        let res_order_detail = await getOrderDetail(ticket_order.id);
+        ticket_order.detalle = res_order_detail;
+
+        let final_ticket_data = {
+            id_pedido: ticket_order.id,
+            fecha: ticket_order.fecha,
+            cajero: localStorage.getItem('username'),
+            chalan: ticket_order.chalan ? ticket_order.chalan.split(',')[0] : 'NA',
+            cliente: ticket_order.id_cliente,
+            adeudo: ticket_order.adeudo,
+            estado_nota: getOrderStatusText(ticket_order.estado),
+            efectivo: null,
+            productos: ticket_order.detalle
+        };
+
+        console.log(final_ticket_data);
+        let res = await SP_API('http://localhost:3002/imprimir-ticket', 'POST', final_ticket_data);
+        alert('Ticket impreso');
+    };
+
     const chalanesSelect = chalanes ? <select name='contra_entrega'>
     <option value='0'>Seleccionar chalan</option>
     { chalanes.map( chalan => <option value={chalan.id + ',' + chalan.nombre}>{ chalan.nombre}</option>) }
@@ -552,13 +594,13 @@ export default function Pedidos(){
                                 filterData().map( (item, index) => {
                                     return <tr key={index}>
                                         <td>{ item.fecha }</td>
-                                        <td>{ item.nombre_cliente }</td>
-                                        <td><p> { item.chalan ? item.chalan.split(',')[1] : null } </p> </td>
+                                        <td>{ item.id_cliente } - { item.nombre_cliente }</td>
+                                        <td><p> { item.chalan ? `${item.chalan.split(',')[0]} - ${item.chalan.split(',')[1]}` : null } </p> </td>
                                         <td>{'$'+ item.total_pagar}</td>
                                         <td>{ getOrderStatusLabel(item) }</td>
                                         <td><div style={ {display: 'flex', flexWrap: 'wrap'} }>
                         <Button className="bg-primary" medium onClick={ () => openDetailModal(item) }>Detalle</Button>
-                        <Button className="bg-light-blue" ml medium onClick={ () => openEditModal(item) }>Ticket</Button>
+                        <Button className="bg-light-blue" ml medium onClick={ () => printTicket(item) }>Ticket</Button>
                         { item.estado === 2 || item.estado === 3 ? <Button className="bg-blue" medium ml onClick={ () => { setPaymentModalState({visible: true}); setCurrentOrder(item)  } }>Cobrar</Button> : (item.estado === 4 ? <><Button className="bg-blue" onClick={ () => openEditModal(item) } medium ml>Recibir pago</Button><Button className="bg-red"  onClick={ () => openFiarModal(item) } medium ml>Fiar </Button></>: null) }
                     </div></td>
                                     </tr> 
