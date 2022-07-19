@@ -282,6 +282,8 @@ export default function Main(){
                     items: basket,
                     client: currentClient,
                     estado: 4,
+                    efectivo: null,
+                    cajero: localStorage.getItem('username'),
                     chalan: evt.target.contra_entrega.value,
                     date:  (new Date().toISOString().split(':')[0]).split('T')[0]
                 }
@@ -306,6 +308,8 @@ export default function Main(){
                         client: currentClient,
                         estado: 1,
                         chalan: null,
+                        efectivo: payment,
+                        cajero: localStorage.getItem('username'),
                         date:  (new Date().toISOString().split(':')[0]).split('T')[0]
                     }
         
@@ -334,6 +338,8 @@ export default function Main(){
                 client: currentClient,
                 estado: 2,
                 chalan: null,
+                efectivo: null,
+                cajero: localStorage.getItem('username'),
                 date:  (new Date().toISOString().split(':')[0]).split('T')[0]
             }
 
