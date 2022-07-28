@@ -188,33 +188,16 @@ export default function Inventory(){
                 </div>
             </Container>
 
-            <Modal title='Mi titulo' visible={ modalState.visible }  handleModalClose={  () => { handleModalClose(); setCurrentNumber('') } } >
+            <Modal title='Mi titulo2' visible={ modalState.visible }  handleModalClose={  () => { handleModalClose(); setCurrentNumber('') } } >
             <div className="product-card-modal">
 
                 <p>¿De verdad desea realizar una merma al producto <strong style={ {fontSize: 16}}>{ currentItem ? currentItem.nombre: null}</strong>?</p>
 
                 <form className="modal-form" onSubmit={ applyMerma }>
                     <input type='hidden' name='product_id' defaultValue={ currentItem ? currentItem.id : null } required/>
-                    <PaymentAmount>{ currentNumber ? currentNumber : '0'} Kg</PaymentAmount>
-                    <input type='hidden' value={currentNumber ? currentNumber : '0'} name='merma'/>
-                    <Keypad currentNumber={currentNumber} setCurrentNumber={setCurrentNumber} />
+                    <PaymentAmount>Stock actual: {Math.round(((currentItem.total_compras ? currentItem.total_compras : 0) - (currentItem.total_pedidos ? currentItem.total_pedidos: 0) - (currentItem.total_merma ? currentItem.total_merma: 0)) *100 )/100 } Kg</PaymentAmount>
 
-                    <div className="modal-buttons" style={ {marginTop: 20} }>
-                        <Button type='submit' className="bg-red" >Si, realizar merma</Button>
-                        <Button type='button' onClick={ () => { handleModalClose(); setCurrentNumber('') } }>Cancelar</Button>
-                    </div>
-                </form>
-                </div>
-            </Modal>
-
-            <Modal title='Mi titulo' visible={ modalState.visible }  handleModalClose={  () => { handleModalClose(); setCurrentNumber('') } } >
-            <div className="product-card-modal">
-
-                <p>¿De verdad desea realizar una merma al producto <strong style={ {fontSize: 16}}>{ currentItem ? currentItem.nombre: null}</strong>?</p>
-
-                <form className="modal-form" onSubmit={ applyMerma }>
-                    <input type='hidden' name='product_id' defaultValue={ currentItem ? currentItem.id : null } required/>
-                    <PaymentAmount>{ currentNumber ? currentNumber : '0'} Kg</PaymentAmount>
+                    <PaymentAmount>Merma: { currentNumber ? currentNumber : '0'} Kg</PaymentAmount>
                     <input type='hidden' value={currentNumber ? currentNumber : '0'} name='merma'/>
                     <Keypad currentNumber={currentNumber} setCurrentNumber={setCurrentNumber} />
 

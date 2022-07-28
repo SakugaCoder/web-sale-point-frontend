@@ -132,7 +132,6 @@ export default function Productos(){
     </div>
     };
 
-
     const deleteProduct = async evt => {
         let product_id = evt.target.product_id.value;
         
@@ -148,7 +147,6 @@ export default function Productos(){
             alert('Error al eliminar el producto');
         }
     }
-
 
     const openDeleteModal = product_data => {
         setModalState({visible: true, content: deleteModal(product_data)});
@@ -173,17 +171,13 @@ export default function Productos(){
         initialFunction();
     }, []);
 
-    
-
-    
-
     return(
         <Layout active='Productos'>
             <Container>
                 <h2>NUEVO PRODUCTO</h2>
                 <div ref={userImgRef} className='user-profile-preview rounded-full m-auto shadow-lg' style={ {width: 150, height:150, borderRadius: 100, border: 'solid 2px #000'} }></div>
 
-                <form action="http://localhost:3002/nuevo-producto" method="post" encType="multipart/form-data">
+                <form action="http://localhost:3002/nuevo-producto" method="post" encType="multipart/form-data" style={ {fontSize: 26} }>
                     <InputFile  name='foto' placeholder='Foto' onChange={ handleOnChangePhoto } />
 
                     <StyledInput type='text' placeholder='Nombre' label='Nombre' name='nombre'/>

@@ -124,7 +124,7 @@ export default function Suppliers(){
             <Input placeholder='Nombre' label='Nombre' name='nombre' required defaultValue={item_data.nombre} /> 
             <label style={ {marginBottom: 20} }>
                 <p>Rol</p>
-                <select name="rol" defaultValue={'' + item_data.rol }>
+                <select name="rol" defaultValue={'' + item_data.rol } style={ {fontSize: 26} }>
                     <option value="0">Usuario</option>
                     <option value="1" selected>Administrador</option>
                 </select>
@@ -189,8 +189,8 @@ export default function Suppliers(){
                     <StyledInput type='text' placeholder='Nombre' label='Nombre' name='nombre' required/>
                     <StyledInput type='text' placeholder='Contraseña' label='Contraseña' name='pswd' required/>
                     <label>
-                        <p>Rol</p>
-                        <select name="rol">
+                        <p style={ {fontSize: 26} }>Rol</p>
+                        <select name="rol" style={ {fontSize: 26} }>
                             <option value="0">Usuario</option>
                             <option value="1" selected>Administrador</option>
                         </select>

@@ -142,7 +142,7 @@ export default function Clientes(){
 
         <p>Editar datos de <strong style={ {fontSize: 16}}>{ item_data.nombre }</strong></p>
 
-        <form className="modal-form" onSubmit={ updateClient }>
+        <form className="modal-form" onSubmit={ updateClient } style={ {fontSize: '26px'} } >
             <input type='hidden' name='client_id' required defaultValue={item_data.id} /> 
             <Input placeholder='Nombre' label='Nombre' name='nombre' required defaultValue={item_data.nombre} /> 
             <Input placeholder='Telefono' label='Telefono' name='telefono' required defaultValue={item_data.telefono} /> 

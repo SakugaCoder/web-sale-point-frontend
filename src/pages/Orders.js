@@ -342,18 +342,6 @@ export default function Pedidos(){
                     <p><strong>Total pagar:</strong></p> <p>${ order.total_pagar }</p>
                 </Detail>
             </OrderDetail>
-
-            <OrderDetail>
-                <Detail>
-                    <p><strong>Adeudo:</strong></p> <p>${ order.adeudo }</p>
-                </Detail>
-            </OrderDetail>
-
-            <OrderDetail>
-                <Detail>
-                    <p><strong>Abono:</strong></p> <p>${ order.abono }</p>
-                </Detail>
-            </OrderDetail>
         </OrderDetailContainer>
 
         <Button className="bg-white" type='submit' onClick={ handleModalClose }>Cerrar</Button>
@@ -556,7 +544,8 @@ export default function Pedidos(){
         <Layout active='Pedidos'>
             <Container>
                 <h2>LISTA DE PEDIDOS</h2>
-                <div style={ { overflowX: 'auto'}}>
+                <Button className='bg-red' onClick={ () => window.location.reload() }>REINICIAR FILTROS</Button>
+                <div style={ { overflowX: 'auto', marginTop: 20}}>
                     { filters.chalan !== '0' && filters.chalan && filters.estado === 4 ? <p style={ {fontSize: 20} }>Total PCE chalan <strong>{filters.chalan.split(',')[1]}</strong> = <strong>${ (filterData().map( item => item.total_pagar)).reduce( (anterior, actual) => anterior + actual, 0) }</strong> </p> : null}
                     {/*  tableData ? <TableWraper data={tableData} openEditModal={ openEditModal } openFiarModal={openFiarModal} /> : null  */} 
                     <StyledTable style={{ border: 'solid 1px #000' }}>
@@ -619,7 +608,7 @@ export default function Pedidos(){
             <Modal title='Payment modal' visible={ paymentModalState.visible }  handleModalClose={ () => { handlePaymentModalClose(); setCurrentNumber(''); } } >
                 <ModalForm onSubmit={ event => payOrderPCE(event) }>
                     <Total>Total a pagar: <strong>$ { currentOrder ? currentOrder.total_pagar : 0} </strong></Total>
-                    <Change>Cambio: <strong> $ { currentOrder ? ((Number(currentNumber) - currentOrder.total_pagar ) > 0 ? (Number(currentNumber) - currentOrder.total_pagar ) : 0) : 0} </strong></Change>
+                    <Change>Cambio: <strong> $ { currentOrder ? ((Number(currentNumber) - currentOrder.total_pagar ) > 0 ? (Number(currentNumber) - currentOrder.total_pagar ) : 0).toFixed(2) : 0} </strong></Change>
                     <PaymentAmount>${ currentNumber ? currentNumber : '0'}</PaymentAmount>
                     <input type='hidden' value={currentNumber ? currentNumber : '0'} name='pago'/>
                     <input type='hidden' name='order_id' value={currentOrder ? currentOrder.id : null} />

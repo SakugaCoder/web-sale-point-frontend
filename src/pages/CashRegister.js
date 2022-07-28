@@ -29,6 +29,16 @@ const ButtonGroup = styled.div`
     }
 `;
 
+const ButtonGroupTop = styled.div`
+    display: inline-block;
+    justify-content: space-between;
+
+    & button{
+        margin-left: 20px;
+        width:300px;
+    }
+`;
+
 const ControlButton = styled(Button)`
     width: 100%;
     margin-top: 20px;
@@ -260,13 +270,28 @@ export default function Suppliers(){
     return(
         <Layout active='Caja'>
             <Container>
-                <h2>ADMINISTRACIÓN DE CAJA</h2>
+                <h2>
+                    ADMINISTRACIÓN DE CAJA
+                    { cashRegisterStatus ? cashRegisterStatus.caja.estado === 'abierta' ? 
+                <> 
+                        <ButtonGroupTop>
+                            <ControlButton type='submit' className="bg-red" onClick={ openConfirmationModal } >CERRAR CAJA</ControlButton>
+                        </ButtonGroupTop>
+                </>
+                : null : null }
+                </h2>
+                
+
+
                 { cashRegisterStatus ? cashRegisterStatus.caja.estado === 'abierta' || cashRegisterStatus.caja.estado === 'cerrada' ? 
                 <>
                     <h2>ESTADO CAJA</h2>
-                    <div style={ {display: 'flex', justifyContent: 'space-around', fontSize: '20px'} }>
+                    <div style={ {display: 'flex', justifyContent: 'space-around', fontSize: '30px'} }>
                         <div>
                             <h3>Retiros: </h3><p>${ cashRegisterStatus ? cashRegisterStatus.retiros : null} </p>
+                            { cashRegisterStatus ? cashRegisterStatus.caja.estado === 'abierta' ? 
+                                <Button className='bg-primary' onClick={ () => setWithdrawModalState({...withdrawModalState, visible: true}) }>REALIZAR RETIRO</Button>
+                            : null : null }
                         </div>
                         <div>
                             <h3>Ingresos: </h3><p>${ cashRegisterStatus ? cashRegisterStatus.ingresos : null}</p>
@@ -334,19 +359,6 @@ export default function Suppliers(){
                     </form>
                 </>
                 }
-
-                { cashRegisterStatus ? cashRegisterStatus.caja.estado === 'abierta' ? 
-                <>  
-                    <h2>RETIROS</h2>
-
-                    <Button className='bg-primary' onClick={ () => setWithdrawModalState({...withdrawModalState, visible: true}) }>REALIZAR RETIRO</Button>
-
-                    <h2 style={ {margin: '60px 0px 10px 0px'} }>CIERRE DE CAJA</h2>
-                        <ButtonGroup>
-                            <ControlButton type='submit' className="bg-red" onClick={ openConfirmationModal } >CERRAR CAJA</ControlButton>
-                        </ButtonGroup>
-                </>
-                : null : null }
 
             <Modal title='Mi titulo' visible={ modalState.visible }  handleModalClose={  handleModalClose } >
                 { modalState.content }

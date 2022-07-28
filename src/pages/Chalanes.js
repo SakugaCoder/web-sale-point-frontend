@@ -16,6 +16,7 @@ const Container = styled.div`
 `;
 
 const StyledInput = styled(Input)`
+    font-size: 26px;
     background-color: red;
 `;
 
@@ -180,7 +181,7 @@ export default function Chalanes(){
             <Container>
                 <h2>NUEVO CHALAN</h2>
 
-                <form onSubmit={ createChalan }>
+                <form onSubmit={ createChalan } style={ {fontSize: '26px'} }>
 
                     <StyledInput type='text' placeholder='Nombre' label='Nombre' name='nombre' required/>
                     <StyledInput type='text' placeholder='Telefono' label='Telefono' name='telefono'/>

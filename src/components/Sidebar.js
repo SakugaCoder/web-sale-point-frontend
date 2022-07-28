@@ -60,7 +60,7 @@ export default function Sidebar(props){
             href: '/clientes',
             icon: faUserTie,
             submenu: false,
-            admin: true
+            admin: false
         },
         /*{
             name: 'Envios',
@@ -102,7 +102,7 @@ export default function Sidebar(props){
             href: '/caja',
             icon: faCashRegister,
             submenu: false,
-            admin: true
+            admin: false
         },
         {
             name: 'Inventario',

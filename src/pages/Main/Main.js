@@ -4,7 +4,7 @@ import UserPicture from "../../components/UserPicture";
 import ProductCard from "./ProductCard";
 
 import styled from 'styled-components';
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 import Ticket from "../../components/Ticket";
 import Modal from "../../components/Modal/Modal";
@@ -79,8 +79,8 @@ const ProductLeftSide = styled.div`
 
 const ProductList = styled.div`
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    grid-template-rows: repeat(5, 1fr);
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
     grid-column-gap: 10px;
     grid-row-gap: 10px;
     max-width: 100%;
@@ -202,14 +202,16 @@ export default function Main(){
     const [ restrictedMode, setRestrictedMode ] = useState(false);
     const [ kgInterval, setKgInterval] = useState(null);
     const [ finalKg, setFinalKg ] = useState(0);
-    const [ currentKg, setCurrentKg] = useState(0);
+    const [ currentKg, setCurrentKg] = useState(1);
     const [ contraEntrega, setContraEntrega ] = useState(false);
     const [cashRegister, setCashRegister] = useState(null);
+
+    const selectClientRef = useRef(null);
 
     const getCurrentKg = async () => {
         let res_kg = await SP_API('http://localhost:3002/bascula', 'GET');
 
-        setCurrentKg(res_kg.kg_bascula);
+        //setCurrentKg(res_kg.kg_bascula);
     };
 
     const getProducts = async () => {
@@ -358,13 +360,17 @@ export default function Main(){
         let kg = Number(evt.target.kg.value);
         if(kg > 0){
             item_data.kg = kg;
-            setBasket([...basket, item_data])
-            handleProductModalClose();
-            setCurrentNumber('');
-            evt.target.reset();
-            return null;
         }
-        alert('Favor de especificar la cantidad');
+
+        else{
+            item_data.kg = currentNumber;
+        }
+
+        setBasket([...basket, item_data])
+        handleProductModalClose();
+        setCurrentNumber('');
+        evt.target.reset();
+        return null;
     };
 
     const modalContent = item_data => {
@@ -435,6 +441,9 @@ export default function Main(){
         { chalanes.map( chalan => <option value={chalan.id + ',' + chalan.nombre}>{ chalan.nombre}</option>) }
     </select> : null;
 
+    const resetSelect = () => {
+        selectClientRef.current.selectedIndex = 0;
+    }
     
     useEffect( () => {
         getProducts();
@@ -554,7 +563,7 @@ export default function Main(){
 
                         </CustomerData>
 
-                        <select className="bg-primary" onChange={ onChangeSelect }>
+                        <select className="bg-primary" ref={ selectClientRef } onChange={ onChangeSelect }>
                             <option value={''}>SELECCIONAR CLIENTE</option>
                             <option value={'0,Cliente de paso,0'}>Cliente de paso</option>
                             { clients ? clients.map(client => <option value={ `${client.id},${client.nombre},${client.adeudo}` }> {client.nombre} </option>) : null}
@@ -578,7 +587,7 @@ export default function Main(){
                         }
                     </ProductLeftSide>
                     
-                    <Ticket items={ basket } openPaymentModal={openPaymentModal} cancelOrder={ clearBasket } payOrder={ () => openPaymentModal(false) } restrictedMode={ restrictedMode }/>
+                    <Ticket items={ basket } openPaymentModal={openPaymentModal} cancelOrder={ () => { clearBasket(); setCurrentClient(null); setCurrentDebt(0); resetSelect(); } } payOrder={ () => openPaymentModal(false) } restrictedMode={ restrictedMode }/>
                 </ProductContainer>
                 </>
                 : null : null ) : null}
@@ -608,7 +617,7 @@ export default function Main(){
                     
                     <ModalButtons>
                         <Button type="submit" className="bg-primary">Pagar</Button>
-                        <Button type="button" className="bg-red" onClick={ () => { handlePaymentModalClose(); setCurrentNumber(''); } }>Cancelar</Button>
+                        <Button type="button" className="bg-red" onClick={ () => { handlePaymentModalClose(); setCurrentNumber('');  } }>Cancelar</Button>
                     </ModalButtons>
                 </ModalForm>
             </Modal>

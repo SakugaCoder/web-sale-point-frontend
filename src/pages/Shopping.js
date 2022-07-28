@@ -59,6 +59,11 @@ const StyledTable = styled.table`
     }
 `;
 
+const StyledForm = styled.div`
+    p{
+        font-size: 30px;
+    }
+`;
 export default function Suppliers(){
     const [tableData, setTableData] = useState(null);
     const [shopping, setShopping] = useState(null);
@@ -368,7 +373,7 @@ export default function Suppliers(){
             <Container>
                 { products && suppliers ?
                 <>
-                <h2>NUEVO COMPRA</h2>
+                <h2>NUEVA COMPRA</h2>
                 <form onSubmit={ createShopping }>
                     <label>
                         <p>Producto</p>
@@ -396,8 +401,9 @@ export default function Suppliers(){
                 </form>
 
                 <h2>LISTA DE COMPRAS</h2>
+                <Button className='bg-red' onClick={ () => window.location.reload() }>REINICIAR FILTROS</Button>
 
-                <form style={ {marginBottom: 20} }>
+                <form style={ {marginBottom: 20, marginTop: 20} }>
                     <div style={ {display: 'flex', alignItems: 'center', justifyContent: 'flex-start'} }>
 
                         {/* <div style={ {display: 'flex'} }>
@@ -458,6 +464,11 @@ export default function Suppliers(){
                     `
                         label p{
                             font-weight: 600;
+                            font-size: 24px;
+                        }
+
+                        input,select{
+                            font-size: 24px;
                         }
 
                         select{

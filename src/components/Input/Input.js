@@ -8,6 +8,7 @@ import { useState, useEffect} from 'react';
 const StyledLabel = styled.label`
     & p{
         font-weight: 600;
+        font-size: 26px;
     }
 `;
 const StyledInput = styled.input`
@@ -15,6 +16,7 @@ const StyledInput = styled.input`
     padding: 10px;
     border-radius: 20px;
     width: 100%;
+    font-size: 26px;
 `;
 
 export default function Input(props){

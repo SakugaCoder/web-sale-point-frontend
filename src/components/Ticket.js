@@ -20,11 +20,13 @@ const TicketContent = styled.div`
     max-height: 50vh;
     overflow-y: auto;
     h3{
-        font-size: 26px;
+        font-size: 40px;
+        margin-bottom: 10px;
     }
 
     p{
-        font-size: 20px;
+        font-size: 30px;
+        margin: 5px 0px;
     }
 `;
 
@@ -38,8 +40,8 @@ const TicketButton = styled(Button)`
 `;
 
 const Total = styled.div`
-    font-size: 20px;
-    margin-top: 30px;
+    font-size: 30px;
+    margin-top: 20px;
 `;
 
 export default function Ticket(props){
@@ -62,8 +64,9 @@ export default function Ticket(props){
                         <p>{ item.name } <strong>x</strong> { item.kg } kg = <strong> ${ Math.floor(Number(item.price) * item.kg) }</strong></p>
                     )}
                     <br/>
-                    <Total><strong>Total: </strong>$ { getTotal(props.items) }</Total>
             </TicketContent>
+            <Total><strong>Total: </strong>$ { getTotal(props.items) }</Total>
+
 
             <TicketButtons>
                 <TicketButton className="bg-primary" onClick={ props.payOrder }>COBRAR</TicketButton>
