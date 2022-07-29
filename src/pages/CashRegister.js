@@ -288,21 +288,21 @@ export default function Suppliers(){
                     <h2>ESTADO CAJA</h2>
                     <div style={ {display: 'flex', justifyContent: 'space-around', fontSize: '30px'} }>
                         <div>
-                            <h3>Retiros: </h3><p>${ cashRegisterStatus ? cashRegisterStatus.retiros : null} </p>
+                            <h3>Retiros: </h3><p>${ cashRegisterStatus ? cashRegisterStatus.retiros.toFixed(2) : null} </p>
                             { cashRegisterStatus ? cashRegisterStatus.caja.estado === 'abierta' ? 
                                 <Button className='bg-primary' onClick={ () => setWithdrawModalState({...withdrawModalState, visible: true}) }>REALIZAR RETIRO</Button>
                             : null : null }
                         </div>
                         <div>
-                            <h3>Ingresos: </h3><p>${ cashRegisterStatus ? cashRegisterStatus.ingresos : null}</p>
+                            <h3>Ingresos: </h3><p>${ cashRegisterStatus ? cashRegisterStatus.ingresos.toFixed(2) : null}</p>
                         </div>
 
                         <div>
-                            <h3>Fondo: </h3><p>${ cashRegisterStatus ? cashRegisterStatus.caja.fondo : null}</p>
+                            <h3>Fondo: </h3><p>${ cashRegisterStatus ? cashRegisterStatus.caja.fondo.toFixed(2) : null}</p>
                         </div>
 
                         <div>
-                            <h3>Total: </h3><p>${ cashRegisterStatus ? cashRegisterStatus.ingresos - cashRegisterStatus.retiros + cashRegisterStatus.caja.fondo: null}</p>
+                            <h3>Total: </h3><p>${ cashRegisterStatus ? (cashRegisterStatus.ingresos - cashRegisterStatus.retiros + cashRegisterStatus.caja.fondo).toFixed(2) : null}</p>
                         </div>
                     </div>
 

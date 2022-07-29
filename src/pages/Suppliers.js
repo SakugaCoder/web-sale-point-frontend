@@ -197,11 +197,14 @@ export default function Suppliers(){
                         <tbody>
                             { tableData ? 
                                 tableData.map( (item, index) => {
-                                    return <tr key={index}>
+                                    let res_ = item.id === 4 ? null :
+                                    <tr key={index}>
                                         <td>{ item.nombre }</td>
                                         <td><Button className="bg-red" onClick={ () => openDeleteModal(item) }><FontAwesomeIcon icon={faTimes} /> Eliminar</Button> </td>
                                         <td><Button className="bg-blue" onClick={ () => openEditModal(item) }><FontAwesomeIcon icon={faPen} /> Editar</Button> </td>
                                     </tr>
+
+                                    return res_;
                                 })
                             : null}
                         </tbody>

@@ -250,8 +250,8 @@ export default function Main(){
 
     const getCurrentKg = async () => {
         let res_kg = await SP_API('http://localhost:3002/bascula', 'GET');
-        setCurrentKg(res_kg.kg_bascula);
-        //setCurrentKg( (Math.random() * 10).toFixed(2) );
+        //setCurrentKg(res_kg.kg_bascula);
+        setCurrentKg( (Math.random() * 10).toFixed(2) );
     };
 
     const getProducts = async () => {

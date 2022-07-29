@@ -222,7 +222,7 @@ export default function Clientes(){
                 <div ref={userImgRef} className='user-profile-preview rounded-full m-auto shadow-lg' style={ {width: 150, height:150, borderRadius: 100, border: 'solid 2px #000'} }></div>
 
 
-                <form encType="multipart/form-data" onSubmit={ checkClientName }>
+                <form encType="multipart/form-data" onSubmit={ checkClientName } style={ {fontSize: 26} }>
                     <InputFile  name='foto' placeholder='Foto' onChange={ handleOnChangePhoto } />
                     <StyledInput type='text' placeholder='Nombre' label='Nombre' name='nombre' required/>
                     <StyledInput type='text' placeholder='Telefono' label='Telefono' name='telefono'/>
