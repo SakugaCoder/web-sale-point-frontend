@@ -61,7 +61,7 @@ export default function Productos(){
 
     const userImgRef = useRef();
     const fileTypes = ['image/png', 'image/jpg', 'image/jpeg'];
-    const fields = ['Imagen', 'Nombre', 'Precio', 'Eliminar', 'Modificar'];
+    const fields = ['Imagen', 'Nombre', 'Precio', 'Venta por', 'Eliminar', 'Modificar'];
 
     
     const handleOnChangePhoto = (evt) => {
@@ -100,7 +100,8 @@ export default function Productos(){
         let data = {
             name: evt.target.name.value,
             price: evt.target.price.value,
-            product_id: evt.target.product_id.value
+            product_id: evt.target.product_id.value,
+            venta_por: evt.target.venta_por.value
         };
         
         handleModalClose();
@@ -124,7 +125,14 @@ export default function Productos(){
             <input type='hidden' name='product_id' required defaultValue={item_data.id} /> 
             <Input placeholder='Nombre' label='Nombre' name='name' required defaultValue={item_data.name} /> 
             <Input placeholder='Precio' label='Precio' name='price' required defaultValue={item_data.price} /> 
-            <div className="modal-buttons">
+            <label>
+                <p style={{ fontSize: 26, fontWeight: 600}}>Venta por</p>
+                <select name="venta_por" style={{fontSize: 26}} defaultValue={item_data.venta_por}>
+                    <option value='kg'>kg</option>
+                    <option value='pza'>pza</option>
+                </select>
+            </label>
+            <div className="modal-buttons" style={{marginTop: 20}}>
                 <Button className="bg-primary" type='submit'>Guardar</Button>
                 <Button className="bg-red" onClick={ handleModalClose }>Cancelar</Button>
             </div>
@@ -183,6 +191,13 @@ export default function Productos(){
                     <StyledInput type='text' placeholder='Nombre' label='Nombre' name='nombre'/>
                     <StyledInput type='text' placeholder='Precio' label='Precio' name='precio'/>
 
+                    <label>
+                        <p style={ {fontWeight: 600} }>Venta por</p>
+                        <select name="venta_por" style={{fontSize: 26}}>
+                            <option value='kg'>kg</option>
+                            <option value='pza'>pza</option>
+                        </select>
+                    </label>
                     <ButtonGroup>
                         <ControlButton type='submit' className="bg-primary">GUARDAR</ControlButton>
                         <ControlButton type='reset' className="bg-red" >CANCELAR</ControlButton>
@@ -205,7 +220,8 @@ export default function Productos(){
                                     return <tr key={index}>
                                         <td><img src={ item.img }  style={ {maxWidth: 90} }/></td>
                                         <td>{ item.name }</td>
-                                        <td>{ item.price }</td>
+                                        <td>${ item.price }</td>
+                                        <td>{ item.venta_por }</td>
                                         <td><Button className="bg-red" onClick={ () => openDeleteModal(item) }><FontAwesomeIcon icon={faTimes} /> Eliminar</Button> </td>
                                         <td><Button className="bg-blue" onClick={ () => openEditModal(item) }><FontAwesomeIcon icon={faPen} /> Editar</Button> </td>
                                     </tr>

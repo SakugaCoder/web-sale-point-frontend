@@ -6,7 +6,7 @@ export default function useModal(){
     });
 
     const handleModalClose = () => {
-        console.log('closing modal');
+        // console.log('closing modal');
         setModalState({visible: false, content: null})
     }
 

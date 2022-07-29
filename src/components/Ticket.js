@@ -44,6 +44,14 @@ const Total = styled.div`
     margin-top: 20px;
 `;
 
+const StyledItem = styled.p`
+    padding: 2px;
+    &:hover, &:focus{
+        background-color: tomato;
+        border-radius: 8px;
+    }
+`;
+
 export default function Ticket(props){
 
     function printPageArea(){
@@ -58,15 +66,14 @@ export default function Ticket(props){
 
     return(
         <TicketContainer>
+            <h3 style={ {textAlign: 'center', fontSize: 30, marginTop: 0 }}>Pedido</h3>
             <TicketContent id="ticket-content">
-                    <h3 style={ {textAlign: 'center' }}>Pedido</h3>
-                    { props.items.map( item => 
-                        <p>{ item.name } <strong>x</strong> { item.kg } kg = <strong> ${ Math.floor(Number(item.price) * item.kg) }</strong></p>
+                    { props.items.map( (item, index) => 
+                        <StyledItem key={index} onClick={ () => props.onClickItem(item) }>{ item.name } <strong>x</strong> { item.kg } { item.venta_por } = <strong> ${ (Number(item.price) * item.kg).toFixed(2) }</strong></StyledItem>
                     )}
                     <br/>
             </TicketContent>
             <Total><strong>Total: </strong>$ { getTotal(props.items) }</Total>
-
 
             <TicketButtons>
                 <TicketButton className="bg-primary" onClick={ props.payOrder }>COBRAR</TicketButton>

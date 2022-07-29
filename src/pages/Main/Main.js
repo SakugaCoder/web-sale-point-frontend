@@ -66,6 +66,46 @@ const CustomerDataItem = styled.div`
     }
 `;
 
+const CustomerDataItemBascula = styled.div`
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    justify-content: space-around;
+    width: 100%;
+    background: #26C485;
+    padding: 10px;
+    border-radius: 10px;
+    margin-left: 10px;
+
+    p, strong{
+        font-size: 30px;
+    }
+    & > p{
+        width: 100%;
+        text-align:center;
+        margin: 5px auto;
+    }
+
+    & > strong{
+        width: 100%;
+        text-align:center;
+    }
+`;
+
+const CustomerDataItemLeft = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    & > p{
+        width: 40%;
+    }
+
+    & > strong{
+        width: 40%;
+    }
+`;
+
 const ProductContainer = styled.div`
     display: flex;
     min-height: calc(100vh - 160px);
@@ -210,8 +250,8 @@ export default function Main(){
 
     const getCurrentKg = async () => {
         let res_kg = await SP_API('http://localhost:3002/bascula', 'GET');
-
-        //setCurrentKg(res_kg.kg_bascula);
+        setCurrentKg(res_kg.kg_bascula);
+        //setCurrentKg( (Math.random() * 10).toFixed(2) );
     };
 
     const getProducts = async () => {
@@ -366,10 +406,54 @@ export default function Main(){
             item_data.kg = currentNumber;
         }
 
-        setBasket([...basket, item_data])
+        console.log(item_data.kg);
+        let item_exists = basket.find( basket_item => basket_item.id === item_data.id);
+        if(item_exists){
+            let new_basket = basket.map(basket_item => {
+                if(basket_item.id === item_data.id){
+                    console.log('econtrado, basket kg: '+ basket_item.kg, ' item kg: '+item_data.kg);
+                    return {
+                        ...basket_item,
+                        kg: basket_item.kg + item_data.kg
+                    };
+                }
+                return basket_item;
+            });
+            setBasket(new_basket);
+        }
+
+        else{
+            setBasket([...basket, item_data]);
+        }
+        
         handleProductModalClose();
         setCurrentNumber('');
         evt.target.reset();
+        return null;
+    };
+
+    const addProductToBasketHidden = item_data => {
+        item_data.kg = (Number(currentKg)).toFixed(2);
+        // console.log(item_data.kg);
+        let item_exists = basket.find( basket_item => basket_item.id === item_data.id);
+        if(item_exists){
+            let new_basket = basket.map(basket_item => {
+                if(basket_item.id === item_data.id){
+                    console.log('econtrado, basket kg: '+ basket_item.kg, ' item kg: '+item_data.kg);
+                    return {
+                        ...basket_item,
+                        kg: Number(basket_item.kg) + Number(currentKg)
+                    };
+                }
+                return basket_item;
+            });
+            setBasket(new_basket);
+        }
+
+        else{
+            setBasket([...basket, item_data]);
+        }
+        setCurrentNumber('');
         return null;
     };
 
@@ -391,8 +475,14 @@ export default function Main(){
     const openProductModal = product_data => {
         setCurrentProduct(product_data);
         if(currentClient){
-            setProductModalState({visible: true});
-            setKgInterval(setInterval(getCurrentKg, 900));
+            console.log(product_data);
+            if(product_data.venta_por === 'kg'){
+                addProductToBasketHidden(product_data);
+            }
+
+            else if(product_data.venta_por === 'pza'){
+                setProductModalState({visible: true});
+            }
         }
 
         else{
@@ -443,105 +533,41 @@ export default function Main(){
 
     const resetSelect = () => {
         selectClientRef.current.selectedIndex = 0;
+    };
+
+    const openDeleteItemModal = product_data => {
+        setModalState({visible: true, content: deleteItemModal(product_data)});
+    };
+
+    const deleteItem = (evt, item) => {
+        evt.preventDefault();
+        setBasket(basket.filter(basket_item => basket_item.id !== item.id));
+        console.log('deleting item', item);
+        setModalState({visible: false, content: null});
+
     }
+
+    const deleteItemModal = item => {
+        return <div className="product-card-modal">
+
+        <p style={ {fontSize: 24}}>Confirma eliminar <strong style={ {fontSize: 24}}>{ item.name} x {item.kg} kg</strong> del pedido</p>
+
+        <form className="modal-form" onSubmit={  event => deleteItem(event, item) }>
+            <div className="modal-buttons">
+                <Button className="bg-red" type='submit'>Eliminar</Button>
+                <Button className="bg-white" onClick={ handleModalClose }>Cancelar</Button>
+            </div>
+        </form>
+    </div>
+    };
     
     useEffect( () => {
         getProducts();
         getClients();
         getChalanes();
         getCashRegister();
+        setKgInterval(setInterval(getCurrentKg, 900));
     }, []);
-
-        /*
-    function completeLine(text){
-        let new_text = text;
-        for(let i = 0; i < (31 - (text.length)) ; i++){
-            new_text += ' ';
-        }
-
-        return new_text;
-    }
-
-
-    function addLineBreak(){
-        let line_break = '';
-        for(let i=0; i < 32; i++)
-            line_break += ' ';
-        return line_break;
-    }
-
-    function printPageArea(){
-        var printContent = document.getElementById('ticket-content');
-        var WinPrint = window.open('', '', 'width=900,height='+printContent.clientHeight);
-        let date = completeLine(new Date().toISOString().split(':')[0]);
-        let client = completeLine(`Cliente: ${currentClient.name}`);
-
-        WinPrint.document.writeln(date);
-        // WinPrint.document.write(addLineBreak());
-        WinPrint.document.writeln(client);
-        // WinPrint.document.write(addLineBreak());
-        WinPrint.document.write(printContent.innerHTML);
-        WinPrint.document.close();
-        WinPrint.focus();
-        WinPrint.print();
-        WinPrint.close();
-    }
-    */
-
-    /*
-    const sendOrder = async evt => {
-        evt.preventDefault();
-        let order = {
-            total: Number(getTotal(basket)),
-            payment: 0,
-            items: basket,
-            client: currentClient,
-            estado: 3,
-            chalan: evt.target.chalan_id.value,
-            date:  (new Date().toISOString().split(':')[0]).split('T')[0]
-        }
-
-        let res = await insertItem('pedido', order);
-        if(res.err === false){
-            window.location.reload();
-        }
-        console.log(res);
-        console.log(order);
-        handleModalClose();
-        console.log(order);
-    }
-
-    const shippingModal = () => {
-        return  <ModalForm onSubmit={ sendOrder }>
-            <p style={ {marginBottom: 20, textAlign: 'center', fontSize: 18} }>Enviando pedido a <strong>{ currentClient.name }</strong></p>
-            <p style={ {marginBottom: 20, textAlign: 'center', fontSize: 18} }>Total a pagar: <strong>${ getTotal(basket)} </strong></p>
-            <Select>
-                    <p>Chalan</p>
-                    <select name="chalan_id">
-                        { chalanes ? chalanes.map(chalan => <option value={ chalan.nombre }> {chalan.nombre} </option>) : null}
-                    </select>
-            </Select>
-
-            <input type='hidden' value={0} name='payment' />
-
-            <ModalButtons>
-                <Button type='submit' className="bg-primary">Enviar</Button>
-                <Button className="bg-red" onClick={ handleModalClose }>Cancelar</Button>
-            </ModalButtons>
-        </ModalForm>
-    }
-
-    const openShippingModal = () => {
-        if(currentClient && basket.length > 0){
-            setModalState({visible: true, content: shippingModal()});
-        }
-
-        else{
-            alert('Por favor agrege productos a la canasta');
-        }
-        
-    };
-    */
 
     return(
         <Layout active='Inicio'>
@@ -553,21 +579,26 @@ export default function Main(){
                         <CustomerData>
                             <CustomerDataItem>
                                 <strong>Cliente:</strong>
-                                <p>{ currentClient ? currentClient.name : 'Ninguno' } </p>
+                                    <select className="" style={ {background: '#CFDFE3'} } ref={ selectClientRef } onChange={ onChangeSelect }>
+                                    <option value={''}>SELECCIONAR CLIENTE</option>
+                                    <option value={'0,Cliente de paso,0'}>Cliente de paso</option>
+                                    { clients ? clients.map(client => <option value={ `${client.id},${client.nombre},${client.adeudo}` }> {client.nombre} </option>) : null}
+                                </select>
                             </CustomerDataItem>
 
-                            <CustomerDataItem>
+                            <CustomerDataItemLeft>
                                 <strong>Deuda:</strong>
                                 <p>{ currentDebt ?'$'+ currentDebt : '$0'} </p>
-                            </CustomerDataItem>
+                            </CustomerDataItemLeft>
 
                         </CustomerData>
 
-                        <select className="bg-primary" ref={ selectClientRef } onChange={ onChangeSelect }>
-                            <option value={''}>SELECCIONAR CLIENTE</option>
-                            <option value={'0,Cliente de paso,0'}>Cliente de paso</option>
-                            { clients ? clients.map(client => <option value={ `${client.id},${client.nombre},${client.adeudo}` }> {client.nombre} </option>) : null}
-                        </select>
+
+                        <CustomerDataItemBascula>
+                                <p>Bascula:</p>
+                                <strong>{ currentKg } kg</strong>
+                        </CustomerDataItemBascula>
+
                     </CustomerStatus>
 
                     <UserPicture />    
@@ -576,7 +607,7 @@ export default function Main(){
                 <ProductContainer>
                     <ProductLeftSide>
                         <ProductList>
-                            { products ? products.map( (product, index) => <ProductCard key={index} handleOnClick={ () => openProductModal(product) } img={ product.img } price={ product.price } /> ) : null}
+                            { products ? products.map( (product, index) => <ProductCard key={index} handleOnClick={ () => openProductModal(product) } img={ product.img } price={ product.price } /> ) : null }
                         </ProductList>
                         {/*
                         <ButtonGroup>
@@ -587,7 +618,7 @@ export default function Main(){
                         }
                     </ProductLeftSide>
                     
-                    <Ticket items={ basket } openPaymentModal={openPaymentModal} cancelOrder={ () => { clearBasket(); setCurrentClient(null); setCurrentDebt(0); resetSelect(); } } payOrder={ () => openPaymentModal(false) } restrictedMode={ restrictedMode }/>
+                    <Ticket items={ basket } openPaymentModal={openPaymentModal} cancelOrder={ () => { clearBasket(); setCurrentClient(null); setCurrentDebt(0); resetSelect(); } } payOrder={ () => openPaymentModal(false) } restrictedMode={ restrictedMode } onClickItem={openDeleteItemModal}/>
                 </ProductContainer>
                 </>
                 : null : null ) : null}
@@ -613,7 +644,6 @@ export default function Main(){
                     </ContraEntrega>
 
                     <Keypad currentNumber={currentNumber} setCurrentNumber={setCurrentNumber} />
-
                     
                     <ModalButtons>
                         <Button type="submit" className="bg-primary">Pagar</Button>
@@ -628,17 +658,23 @@ export default function Main(){
                     <ProductCardModal>
                         <img src={currentProduct.img }/>
 
-                        <strong style={ {fontSize: 36} }>$ { currentProduct.price } x Kg</strong>
+                        <strong style={ {fontSize: 36} }>$ { currentProduct.price } x pza</strong>
 
-                        <ModalForm onSubmit={ event => { addProductToBasket(event, currentProduct); setFinalKg(0); }}>
+                        <ModalForm onSubmit={ event => { addProductToBasket(event, currentProduct); }}>
                             { /* <Input placeholder='Cantidad en kg' label='Cantidad en kilogramos' name='kg' required/> */}
-                            <input type='hidden' value={ finalKg } name='kg' required/>
-                            <PaymentAmount>En bascula: { currentKg } kg</PaymentAmount>
-                            <PaymentAmount>Peso total: { finalKg } kg</PaymentAmount>
+                            <input type='hidden' value={ currentNumber } name='kg'/>
+                            {/* 
+                                <PaymentAmount>En bascula: { currentKg } kg</PaymentAmount>
+                                <PaymentAmount>Peso total: { finalKg } kg</PaymentAmount>
+                            */}
+
+                            <PaymentAmount style={ {marginTop:5, marginBottom: 5}}>Total: ${ currentNumber ? currentNumber*currentProduct.price : '0'}</PaymentAmount>
+                            <PaymentAmount style={ {marginTop:5}}>Piezas: { currentNumber ? currentNumber : '0'}</PaymentAmount>
+                            <Keypad currentNumber={currentNumber} setCurrentNumber={setCurrentNumber} />
 
                             <ModalButtons>
-                                    <Button className="bg-red" onClick={ () => { handleProductModalClose(); setCurrentNumber(''); clearInterval(kgInterval); setFinalKg(0); } }>Cancelar</Button>
-                                    <Button className="bg-blue ml" type='button' onClick={ () => { setFinalKg(finalKg+currentKg)} }>Agregar peso</Button>
+                                    <Button type='button' className="bg-red" onClick={ () => { handleProductModalClose(); setCurrentNumber(''); } }>Cancelar</Button>
+                                    {/* <Button className="bg-blue ml" type='button' onClick={ () => { setFinalKg(finalKg+currentKg)} }>Agregar peso</Button> */}
                                     <Button type='submit' className="ml bg-primary">Guardar</Button>
                             </ModalButtons>
 

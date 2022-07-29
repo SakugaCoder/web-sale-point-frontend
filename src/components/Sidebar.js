@@ -32,7 +32,7 @@ const SidebarLogo = styled.div`
 `;
 
 export default function Sidebar(props){
-    console.log(Number(props.rol) === 1);
+    // console.log(Number(props.rol) === 1);
     const user_menu = [
         {
             name: 'Inicio',
