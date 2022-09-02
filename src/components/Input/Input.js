@@ -9,6 +9,7 @@ const StyledLabel = styled.label`
     & p{
         font-weight: 600;
         font-size: 26px;
+        margin-bottom: 5px;
     }
 `;
 const StyledInput = styled.input`
@@ -59,7 +60,7 @@ export function InputFile(props){
             */
         }
         else{
-            setCurrentFilename(<span><FontAwesomeIcon icon={faPlus}/> Agregar</span>);
+            setCurrentFilename(<span style={ {border: 'solid 1px #000'} }><FontAwesomeIcon icon={faPlus}/> Agregar</span>);
         }
     }
 
@@ -74,7 +75,7 @@ export function InputFile(props){
         }
 
         else{
-            setCurrentFilename(<span><FontAwesomeIcon icon={faPlus}/> Agregar</span>);
+            setCurrentFilename(<span style={ {border: 'Solid 1px #000', marginTop: 20, padding: 10, display: 'block', borderRadius: 10} }><FontAwesomeIcon icon={faPlus}/> Agregar</span>);
         }
     }, [])
 

@@ -159,9 +159,7 @@ export default function Inventory(){
         <Layout active='Inventario'>
             <Container>
                 <h2>INVENTARIO</h2>
-
-                <h2>LISTA DE INVENTARIO</h2>
-
+                
                 <div style={ { overflowX: 'auto'}}>
                     <StyledTable>
                         <thead>

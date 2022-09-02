@@ -8,8 +8,10 @@ import { getItems, SP_API } from "../utils/SP_APPI";
 import Modal from "../components/Modal/Modal";
 import useModal from "../hooks/useModal";
 import Keypad from "../components/Keypad";
+import NormalButton from "../components/Button";
 
 import { useTable, useSortBy } from "react-table";
+import { roundNumber } from "../utils/Operations";
 
 const Container = styled.div`
     padding: 20px;
@@ -19,21 +21,21 @@ const StyledTable = styled.table`
     border-collapse: collapse;
     border: 1px solid black;
     width: 100%;
-    font-size: 22px;
+    font-size: 20px;
 
     tbody tr:nth-child(even) {
         background-color: #eee;
     }
 
     td{
-        padding: 5px;
+        padding: 2px;
     }
       
     thead tr th {
         background-color: #26C485;
         color: #000;
         text-align: left;
-        padding: 5px;
+        padding: 2px;
     }
 `;
 
@@ -88,7 +90,7 @@ const ModalButtons = styled.div`
 `;
 
 const ModalForm = styled.form`
-    width: 90%;
+    width: 100%;
 
     & label{
         display: block;
@@ -121,6 +123,25 @@ const PaymentAmount = styled.p`
     text-align: center;
 `;
 
+const ActionButton = styled.button`
+    display: block;
+    border: solid 1px #000;
+    font-weight: 700;
+    font-size: 18px;
+    text-transform: uppercase;
+    padding: 18px 8px;
+    border-radius: 5px;
+
+    ${props => props.ml ? 'margin-left: 5px;' : ''}
+
+    &:hover{
+        cursor: pointer;
+        background-color: white;
+        border-color: #000;
+    }
+
+`;
+
 const getOrderStatusLabel = status_id => {
     let chalan = status_id.chalan;
     status_id = status_id.estado;
@@ -131,7 +152,7 @@ const getOrderStatusLabel = status_id => {
         
 
         case 2:
-            return <span className="badge badge-red">Adeudo/Fiado</span> 
+            return <span className="badge badge-red">Fiado</span> 
         
 
         case 3:
@@ -186,7 +207,8 @@ export default function Pedidos(){
     const payOrder = async order => {
         let data = {
             total: order.total_pagar,
-            order_id: order.id
+            order_id: order.id,
+            cajero: localStorage.getItem('username')
         };
 
         console.log(data);
@@ -235,6 +257,7 @@ export default function Pedidos(){
         evt.preventDefault();
         let order = {
             order_id: order_detail.id,
+            cajero: localStorage.getItem('username')
         }
 
         let res = await SP_API('http://localhost:3002/fiar-pedido', 'POST', order); 
@@ -329,6 +352,11 @@ export default function Pedidos(){
             <OrderDetail>
                 <Detail>
                     <p><strong>Fecha:</strong></p> <p>{ order.fecha }</p>
+                </Detail>
+            </OrderDetail>
+            <OrderDetail>
+                <Detail>
+                    <p><strong>Cajero:</strong></p> <p>{ order.cajero }</p>
                 </Detail>
             </OrderDetail>
             <OrderDetail>
@@ -475,17 +503,19 @@ export default function Pedidos(){
     return(
         <Layout active='Pedidos'>
             <Container>
-                <h2>LISTA DE PEDIDOS</h2>
-                <Button className='bg-red' onClick={ () => window.location.reload() }>REINICIAR FILTROS</Button>
+                <div style={ {display: 'flex', justifyContent: 'space-between'} }>
+                    <h2>LISTA DE PEDIDOS</h2>
+                    <Button className='bg-red' onClick={ () => window.location.reload() }>REINICIAR FILTROS</Button>
+                </div>
                 <div style={ { overflowX: 'auto', marginTop: 20}}>
-                    { filters.chalan !== '0' && filters.chalan && filters.estado === 4 ? <p style={ {fontSize: 20} }>Total PCE chalan <strong>{filters.chalan.split(',')[1]}</strong> = <strong>${ (filterData().map( item => item.total_pagar)).reduce( (anterior, actual) => anterior + actual, 0) }</strong> </p> : null}
+                    { filters.chalan !== '0' && filters.chalan && filters.estado === 4 ? <p style={ {fontSize: 20} }>Total PCE chalan <strong>{filters.chalan.split(',')[1]}</strong> = <strong>${ roundNumber((filterData().map( item => item.total_pagar)).reduce( (anterior, actual) => anterior + actual, 0)) }</strong> </p> : null}
                     {/*  tableData ? <TableWraper data={tableData} openEditModal={ openEditModal } openFiarModal={openFiarModal} /> : null  */} 
                     <StyledTable style={{ border: 'solid 1px #000' }}>
 
                         <thead style={ {backgroundColor: '#26C485'} }>
                             <tr>
 
-                                <td>Fecha <input type={'date'} style={ {padding: 10, fontSize: '16px'} } onChange={ (event) => setFilters({...filters, fecha: event.target.value }) }/> </td>
+                                <td><input type={'date'} style={ {padding: 10, fontSize: '16px'} } onChange={ (event) => setFilters({...filters, fecha: event.target.value }) }/> </td>
                                 <td><select name="cliente" style={ {padding: 10, fontSize: '16px'} } onChange={ (event) => setFilters({...filters, cliente: event.target.value }) } >
                                         <option value='0'>Cliente</option>
                                         { clients ? clients.map( cliente => <option value={cliente.id + ',' + cliente.nombre}>{ cliente.nombre}</option>) : null };
@@ -519,10 +549,10 @@ export default function Pedidos(){
                                         <td><p> { item.chalan ? `${item.chalan.split(',')[0]} - ${item.chalan.split(',')[1]}` : null } </p> </td>
                                         <td>{'$'+ item.total_pagar}</td>
                                         <td>{ getOrderStatusLabel(item) }</td>
-                                        <td><div style={ {display: 'flex', flexWrap: 'wrap'} }>
-                        <Button className="bg-primary" medium onClick={ () => openDetailModal(item) }>Detalle</Button>
-                        <Button className="bg-light-blue" ml medium onClick={ () => printTicket(item) }>Ticket</Button>
-                        { item.estado === 2 || item.estado === 3 ? <Button className="bg-blue" medium ml onClick={ () => { setPaymentModalState({visible: true}); setCurrentOrder(item)  } }>Cobrar</Button> : (item.estado === 4 ? <><Button className="bg-blue" onClick={ () => openEditModal(item) } medium ml>Recibir pago</Button><Button className="bg-red"  onClick={ () => openFiarModal(item) } medium ml>Fiar </Button></>: null) }
+                                        <td><div style={ {display: 'flex', flexWrap: 'nowrap'} }>
+                        <ActionButton className="bg-primary" medium onClick={ () => openDetailModal(item) }>Detalle</ActionButton>
+                        <ActionButton className="bg-light-blue" ml medium onClick={ () => printTicket(item) }>Ticket</ActionButton>
+                        { item.estado === 2 || item.estado === 3 ? <ActionButton className="bg-blue" medium ml onClick={ () => { setPaymentModalState({visible: true}); setCurrentOrder(item)  } }>Cobrar</ActionButton> : (item.estado === 4 ? <><ActionButton className="bg-blue" onClick={ () => openEditModal(item) } medium ml>Recibir pago</ActionButton><ActionButton className="bg-red"  onClick={ () => openFiarModal(item) } medium ml>Fiar </ActionButton></>: null) }
                     </div></td>
                                     </tr> 
                                 })

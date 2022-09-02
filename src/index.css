@@ -6,7 +6,7 @@ body {
 }
 
 *, *:before, *:after {
-  box-sizing: inherit;
+  box-sizing: border-box;
 }
 
 .bg-primary{
@@ -106,5 +106,5 @@ body {
 h2{
   font-weight: 500;
   font-size: 30px;
-  margin-bottom: 40px;
+  margin-bottom: 20px;
 }

@@ -61,7 +61,7 @@ export default function Clientes(){
 
     const userImgRef = useRef();
     const fileTypes = ['image/png', 'image/jpg', 'image/jpeg'];
-    const fields = ['Imagen', 'Nombre', 'Telefono','Eliminar', 'Modificar'];
+    const fields = ['Id', 'Nombre', 'Telefono','Eliminar', 'Modificar'];
 
     
     
@@ -203,7 +203,7 @@ export default function Clientes(){
         let username = evt.target.nombre.value;
         let user_exist = tableData.find( client => client.nombre.toLowerCase() == username.toLowerCase());
         if(user_exist){
-            setError('Error. usuario existe');
+            setError('Error: Nombre del cliente ya existe, favor de agregar apellidos u otra palabra al cliente.');
         }
 
         else{
@@ -218,12 +218,7 @@ export default function Clientes(){
         <Layout active='Clientes'>
             <Container>
                 <h2>NUEVO CLIENTE</h2>
-
-                <div ref={userImgRef} className='user-profile-preview rounded-full m-auto shadow-lg' style={ {width: 150, height:150, borderRadius: 100, border: 'solid 2px #000'} }></div>
-
-
-                <form encType="multipart/form-data" onSubmit={ checkClientName } style={ {fontSize: 26} }>
-                    <InputFile  name='foto' placeholder='Foto' onChange={ handleOnChangePhoto } />
+                <form onSubmit={ checkClientName } style={ {fontSize: 26} }>
                     <StyledInput type='text' placeholder='Nombre' label='Nombre' name='nombre' required/>
                     <StyledInput type='text' placeholder='Telefono' label='Telefono' name='telefono'/>
                     <p style={ {color: '#ff0000'} } > { error } </p>
@@ -248,7 +243,7 @@ export default function Clientes(){
                             { tableData ? 
                                 tableData.map( (item, index) => {
                                     return <tr key={index}>
-                                        <td><div className="user-profile-img" style={ {backgroundImage: `url('${ item.imagen }')`} }> </div></td>
+                                        <td>{ item.id }</td>
                                         <td>{ item.nombre }</td>
                                         <td>{ item.telefono }</td>
                                         <td><Button className="bg-red" onClick={ () => openDeleteModal(item) }><FontAwesomeIcon icon={faTimes} /> Eliminar</Button> </td>

@@ -27,9 +27,10 @@
     border-radius: 30px;
     background-color: #fefefe;
     z-index: 40;
-    margin: 10px auto; /* 15% from the top and centered */
+    
     padding: 20px;
     width: 90%; /* Could be more or less, depending on screen size */
+    margin: 10px auto; /* 15% from the top and centered */
 }
 
 .modal__header{

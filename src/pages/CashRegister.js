@@ -30,12 +30,11 @@ const ButtonGroup = styled.div`
 `;
 
 const ButtonGroupTop = styled.div`
-    display: inline-block;
-    justify-content: space-between;
+    display: flex;
+    justify-content: flex-end;
 
     & button{
         margin-left: 20px;
-        width:300px;
     }
 `;
 
@@ -51,7 +50,8 @@ const StyledTable = styled.table`
     font-size: 22px;
     overflow: hidden;
 
-    display: inline-block;
+    display: block;
+    margin: auto;
 
     max-height: 320px;
     overflow-y: scroll;
@@ -270,12 +270,16 @@ export default function Suppliers(){
     return(
         <Layout active='Caja'>
             <Container>
-                <h2>
+                <h2 style={ {display: 'flex', justifyContent: 'space-between'} }>
                     ADMINISTRACIÓN DE CAJA
                     { cashRegisterStatus ? cashRegisterStatus.caja.estado === 'abierta' ? 
                 <> 
                         <ButtonGroupTop>
-                            <ControlButton type='submit' className="bg-red" onClick={ openConfirmationModal } >CERRAR CAJA</ControlButton>
+                            <Button type='submit' className="bg-red" onClick={ openConfirmationModal } >CERRAR CAJA</Button>
+
+                            { cashRegisterStatus ? cashRegisterStatus.caja.estado === 'abierta' ? 
+                                <Button className='bg-primary' onClick={ () => setWithdrawModalState({...withdrawModalState, visible: true}) }>REALIZAR RETIRO</Button>
+                            : null : null }
                         </ButtonGroupTop>
                 </>
                 : null : null }
@@ -285,13 +289,10 @@ export default function Suppliers(){
 
                 { cashRegisterStatus ? cashRegisterStatus.caja.estado === 'abierta' || cashRegisterStatus.caja.estado === 'cerrada' ? 
                 <>
-                    <h2>ESTADO CAJA</h2>
+                    <h2 style={ {marginBottom: 0} }>ESTADO CAJA</h2>
                     <div style={ {display: 'flex', justifyContent: 'space-around', fontSize: '30px'} }>
                         <div>
                             <h3>Retiros: </h3><p>${ cashRegisterStatus ? cashRegisterStatus.retiros.toFixed(2) : null} </p>
-                            { cashRegisterStatus ? cashRegisterStatus.caja.estado === 'abierta' ? 
-                                <Button className='bg-primary' onClick={ () => setWithdrawModalState({...withdrawModalState, visible: true}) }>REALIZAR RETIRO</Button>
-                            : null : null }
                         </div>
                         <div>
                             <h3>Ingresos: </h3><p>${ cashRegisterStatus ? cashRegisterStatus.ingresos.toFixed(2) : null}</p>
@@ -308,11 +309,11 @@ export default function Suppliers(){
 
                     <h2>LISTA DE CIERRES DE CAJA</h2>
 
-                    <div style={ { overflowX: 'auto'}}>
+                    <div style={ { overflowX: 'auto', display: 'flex'}}>
                         <StyledTable>
                             <thead>
                                 <tr>
-                                    <td>Fecha <input style={ {fontSize: 18} } type={'date'} name='date' onChange={ (evt) => setFilters({fecha: evt.target.value})}/></td>
+                                    <td><input style={ {fontSize: 18} } type={'date'} name='date' onChange={ (evt) => setFilters({fecha: evt.target.value})}/></td>
                                     <td>Fondo</td>
                                     <td>Ingresos</td>
                                     <td>Retiros</td>

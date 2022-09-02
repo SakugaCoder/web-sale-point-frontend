@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import Button from "./Button";
 
-import { getTotal } from '../utils/Operations';
+import { getTotal, roundNumber } from '../utils/Operations';
 
 const TicketContainer = styled.div`
     width: 35%;
@@ -54,22 +54,11 @@ const StyledItem = styled.p`
 
 export default function Ticket(props){
 
-    function printPageArea(){
-        var printContent = document.getElementById('ticket-content');
-        var WinPrint = window.open('', '', 'width=900,height='+printContent.clientHeight);
-        WinPrint.document.write(printContent.innerHTML);
-        WinPrint.document.close();
-        WinPrint.focus();
-        WinPrint.print();
-        WinPrint.close();
-    }
-
     return(
         <TicketContainer>
-            <h3 style={ {textAlign: 'center', fontSize: 30, marginTop: 0 }}>Pedido</h3>
             <TicketContent id="ticket-content">
                     { props.items.map( (item, index) => 
-                        <StyledItem key={index} onClick={ () => props.onClickItem(item) }>{ item.name } <strong>x</strong> { item.kg } { item.venta_por } = <strong> ${ (Number(item.price) * item.kg).toFixed(2) }</strong></StyledItem>
+                        <StyledItem key={index} onClick={ () => props.onClickItem(item) }>{ item.name } <strong>x</strong> { roundNumber(item.kg) } { item.venta_por } = <strong> ${ roundNumber(Number(item.price) * Number(item.kg)) }</strong></StyledItem>
                     )}
                     <br/>
             </TicketContent>

@@ -1,6 +1,7 @@
 import styled from "styled-components";
 import SidebarItem from "./SidebarItem";
 
+import { useState } from "react";
 
 import { 
     faTh,
@@ -16,7 +17,7 @@ import {
 
 const SidebarContainer = styled.div`
     background-color: #CFDFE3;
-    max-width: 280px;
+    max-width: 220px;
     width: 100%;
     padding-top: 20px;
     height: 100%;
@@ -29,6 +30,39 @@ const SidebarLogo = styled.div`
     letter-spacing: 1rem;
     text-align: center;
     margin-bottom: 40px;
+    &:hover{
+        cursor: pointer;
+    }
+`;
+
+const UserOptions = styled.div`
+    position: absolute;
+    left: 20px;
+    display: flex;
+
+    &:hover{
+        display: block;
+    }
+    
+    & ul{
+        list-style: none;
+        margin: auto;
+        padding: 0px;
+    }
+
+    & li{
+        display: block;
+        width: 100%;
+    }
+
+    & li button{
+        background: #000;
+        color: #fff;
+        padding: 8px;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+    }
 `;
 
 export default function Sidebar(props){
@@ -113,11 +147,30 @@ export default function Sidebar(props){
         }
     ];
 
+    const [optionVisible, setOptionsVisible] = useState(false);
+    const toggleOptionsMenu= () => {
+        setOptionsVisible(!optionVisible);
+    };
+    
+    const logOut = () => {
+        localStorage.removeItem('session-started');
+        localStorage.removeItem('username');
+        localStorage.removeItem('sp_rol');
+        window.location.assign('/');
+    };
+
 
     return(
         <SidebarContainer>
-            <SidebarLogo>
+            <SidebarLogo  onClick={ toggleOptionsMenu }>
                 PVOL
+                { optionVisible ?
+                <UserOptions className="hidden">
+                    <ul>
+                        <li><button onClick={ logOut }>Cerrar sesión</button></li>
+                    </ul>
+                </UserOptions>
+                : null}
             </SidebarLogo>
             { Number(props.rol) === 1 
             ?

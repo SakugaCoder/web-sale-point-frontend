@@ -5,11 +5,15 @@ const getTotal = (items) => {
         total += item.price * item.kg;
     });
 
-    total = total.toFixed(2);
+    total = roundNumber(total);
 
     // console.log(total);
 
     return total;
 };
 
-export { getTotal };
+function roundNumber(n){
+    return Math.round((n + Number.EPSILON) * 100) / 100
+}
+
+export { getTotal, roundNumber };

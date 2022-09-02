@@ -12,7 +12,7 @@ import Modal from "../../components/Modal/Modal";
 import useModal from "../../hooks/useModal";
 import Keypad from "../../components/Keypad";
 import { getItems, insertItem, SP_API } from "../../utils/SP_APPI";
-import { getTotal } from "../../utils/Operations";
+import { getTotal, roundNumber } from "../../utils/Operations";
 
 const MainContainer = styled.div`
     margin: 20px;
@@ -22,13 +22,20 @@ const MainContainer = styled.div`
 const Header = styled.header` 
     display: flex;
     justify-content: space-between;
+
+    h2{
+        width: 50%;
+        text-align: center;
+        font-weight: 700;
+        font-size: 30px;
+    }
 `;
 
 const CustomerStatus = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    width: 60%;
+    width: 70%;
 
     & select{
         padding: 10px 15px;
@@ -153,7 +160,7 @@ const ProductCardModal = styled.div`
 `;
 
 const ModalForm = styled.form`
-    width: 90%;
+    width: 100%;
 
     & label{
         display: block;
@@ -244,14 +251,15 @@ export default function Main(){
     const [ finalKg, setFinalKg ] = useState(0);
     const [ currentKg, setCurrentKg] = useState(1);
     const [ contraEntrega, setContraEntrega ] = useState(false);
-    const [cashRegister, setCashRegister] = useState(null);
+    const [ cashRegister, setCashRegister ] = useState(null);
+    const [ paymentError, setPaymentError ]  = useState('');
 
     const selectClientRef = useRef(null);
 
     const getCurrentKg = async () => {
         let res_kg = await SP_API('http://localhost:3002/bascula', 'GET');
-        setCurrentKg(res_kg.kg_bascula);
-        //setCurrentKg( (Math.random() * 10).toFixed(2) );
+        // setCurrentKg(res_kg.kg_bascula);
+        setCurrentKg( roundNumber((Math.random() * 10)));
     };
 
     const getProducts = async () => {
@@ -299,7 +307,7 @@ export default function Main(){
                 // Get client debt
                 let res = await SP_API('http://localhost:3002/deuda-usuario/'+client_data[0], 'GET');
                 if(res){
-                    setCurrentDebt(res[0].deuda_cliente);
+                    setCurrentDebt(roundNumber(res[0].deuda_cliente));
                 }
                 console.log(res);
                 setRestrictedMode(false);
@@ -365,6 +373,7 @@ export default function Main(){
                 }
 
                 else{
+                    setPaymentError('La cantidad ingresada para el pago no es valida. Favor de verificar.');
                     console.log('Ingresa una cantidad correcta');
                 }
             }
@@ -423,7 +432,7 @@ export default function Main(){
         }
 
         else{
-            setBasket([...basket, item_data]);
+            setBasket([item_data, ...basket]);
         }
         
         handleProductModalClose();
@@ -433,7 +442,7 @@ export default function Main(){
     };
 
     const addProductToBasketHidden = item_data => {
-        item_data.kg = (Number(currentKg)).toFixed(2);
+        item_data.kg = roundNumber(Number(currentKg));
         // console.log(item_data.kg);
         let item_exists = basket.find( basket_item => basket_item.id === item_data.id);
         if(item_exists){
@@ -451,7 +460,7 @@ export default function Main(){
         }
 
         else{
-            setBasket([...basket, item_data]);
+            setBasket([item_data, ...basket]);
         }
         setCurrentNumber('');
         return null;
@@ -477,7 +486,13 @@ export default function Main(){
         if(currentClient){
             console.log(product_data);
             if(product_data.venta_por === 'kg'){
-                addProductToBasketHidden(product_data);
+                console.log(currentKg);
+                if((Number(currentKg)).toFixed(2) <= 0){
+                    return null;
+                }
+                else{
+                    addProductToBasketHidden(product_data);
+                }
             }
 
             else if(product_data.venta_por === 'pza'){
@@ -579,9 +594,9 @@ export default function Main(){
                         <CustomerData>
                             <CustomerDataItem>
                                 <strong>Cliente:</strong>
-                                    <select className="" style={ {background: '#CFDFE3'} } ref={ selectClientRef } onChange={ onChangeSelect }>
+                                    <select className="" style={ {background: '#CFDFE3', fontSize: 20} } ref={ selectClientRef }  onChange={ onChangeSelect }>
                                     <option value={''}>SELECCIONAR CLIENTE</option>
-                                    <option value={'0,Cliente de paso,0'}>Cliente de paso</option>
+                                    <option value={'0,Cliente de paso,0'}>CLIENTE DE PASO</option>
                                     { clients ? clients.map(client => <option value={ `${client.id},${client.nombre},${client.adeudo}` }> {client.nombre} </option>) : null}
                                 </select>
                             </CustomerDataItem>
@@ -601,13 +616,13 @@ export default function Main(){
 
                     </CustomerStatus>
 
-                    <UserPicture />    
+                    <h2>Pedido</h2>
                 </Header>
 
                 <ProductContainer>
                     <ProductLeftSide>
                         <ProductList>
-                            { products ? products.map( (product, index) => <ProductCard key={index} handleOnClick={ () => openProductModal(product) } img={ product.img } price={ product.price } /> ) : null }
+                            { products ? products.map( (product, index) => <ProductCard key={index} handleOnClick={ () => openProductModal(product) } img={ product.img } price={ product.price } name={ product.name } /> ) : null }
                         </ProductList>
                         {/*
                         <ButtonGroup>
@@ -633,17 +648,18 @@ export default function Main(){
             <Modal title='Payment modal' visible={ paymentModalState.visible }  handleModalClose={ () => { handlePaymentModalClose(); setCurrentNumber(''); } } >
                 <ModalForm onSubmit={ event => payOrder(event) }>
                     <Total>Total a pagar: <strong>${ getTotal(basket)} </strong></Total>
-                    <Change>Cambio: <strong>${ currentNumber ? ( Number(currentNumber) - Number(getTotal(basket)) > 0 ? (Number(currentNumber) - Number(getTotal(basket) )).toFixed(2) : '0' ) : '0'} </strong></Change>
+                    <Change>Cambio: <strong>${ currentNumber ? ( Number(currentNumber) - Number(getTotal(basket)) > 0 ? roundNumber(Number(currentNumber) - Number(getTotal(basket) )) : '0' ) : '0'} </strong></Change>
                     <PaymentAmount>${ currentNumber ? currentNumber : '0'}</PaymentAmount>
                     <input type='hidden' value={currentNumber ? currentNumber : '0'} name='pago'/>
 
+                    <div>{paymentError ? <p style={ {fontSize: 24, color: 'red', textAlign: 'center'} }>{paymentError}</p> : null}</div>
                     <ContraEntrega>
                         { /* <h3 style={{ textAlign: 'center', fontSize: 20}}>Contra engrega <input type='checkbox' style={ {padding: '10px'} } onChange={ (event) => setContraEntrega(event.target.checked) } /></h3> */}
-                        <h2>Contra entrega</h2>
+                        <h2>Pago contra entrega</h2>
                         { chalanesSelect }
                     </ContraEntrega>
 
-                    <Keypad currentNumber={currentNumber} setCurrentNumber={setCurrentNumber} />
+                    <Keypad currentNumber={currentNumber} setCurrentNumber= { (val) => {setCurrentNumber(val); setPaymentError('') }} />
                     
                     <ModalButtons>
                         <Button type="submit" className="bg-primary">Pagar</Button>

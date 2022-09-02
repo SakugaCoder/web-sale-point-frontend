@@ -9,7 +9,7 @@ const LayoutContainer = styled.div`
 
 const MainContainer = styled.div`
     width: 100%;
-    padding-left: 280px;
+    padding-left: 220px;
 `;
 
 export default function Layout(props){

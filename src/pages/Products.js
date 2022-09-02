@@ -2,9 +2,10 @@ import Layout from "../components/Layout.";
 import styled from "styled-components";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTimes, faPen } from "@fortawesome/free-solid-svg-icons";
+import { faTimes, faPen, faPlus } from "@fortawesome/free-solid-svg-icons";
 import Input, { InputFile } from "../components/Input/Input";
 import Button from "../components/Button";
+import Keypad from "../components/Keypad";
 
 import { useState, useRef, useEffect} from 'react';
 import { getItems, updateItem, deleteItem } from "../utils/SP_APPI";
@@ -54,15 +55,32 @@ const StyledTable = styled.table`
     }
 `;
 
+const PaymentAmount = styled.p` 
+    font-size: 36px;
+    font-weight: 600;
+    text-align: center;
+`;
+
+const Total = styled.p` 
+    font-size: 36px;
+    text-align: center;
+    margin-bottom: 0px;
+    margin-top: 0px;
+`;
+
 export default function Productos(){
     const [currentUserImg, setCurrentUserImg] = useState('');
     const [tableData, setTableData] = useState(null);
+    const [currentProduct, setCurrentProduct] = useState(null);
+    const [ currentNumber, setCurrentNumber ] = useState('');
+
     const { modalState, setModalState, handleModalClose } = useModal();
+    const { modalState: pictureModalState, setModalState: setPictureModalState, handleModalClose: handlePictureModalClose } = useModal();
+    const { modalState: priceModalState, setModalState: setPriceModalState, handleModalClose: handlePriceModalClose } = useModal();
 
     const userImgRef = useRef();
     const fileTypes = ['image/png', 'image/jpg', 'image/jpeg'];
     const fields = ['Imagen', 'Nombre', 'Precio', 'Venta por', 'Eliminar', 'Modificar'];
-
     
     const handleOnChangePhoto = (evt) => {
         console.log(evt.target.files);
@@ -93,26 +111,30 @@ export default function Productos(){
     };
     
     const openEditModal = product_data => {
-        setModalState({visible: true, content: editModal(product_data)});
+        setCurrentProduct(product_data);
+        setPriceModalState({visible: true});
     };
 
     const updateProduct = async evt => {
+        evt.preventDefault();
         let data = {
-            name: evt.target.name.value,
             price: evt.target.price.value,
             product_id: evt.target.product_id.value,
-            venta_por: evt.target.venta_por.value
         };
-        
-        handleModalClose();
 
-        let res = await updateItem('producto', data);
-        if(res.err === false){
-            initialFunction();    
-        }
+        if(Number(data.price) > 0){
+            handlePriceModalClose();
 
-        else{
-            alert('Error al actualizar el producto');
+            let res = await updateItem('producto', data);
+            if(res.err === false){
+                initialFunction();    
+            }
+    
+            else{
+                alert('Error al actualizar el producto');
+            }
+
+            setCurrentNumber('');
         }
     };
 
@@ -183,16 +205,23 @@ export default function Productos(){
         <Layout active='Productos'>
             <Container>
                 <h2>NUEVO PRODUCTO</h2>
-                <div ref={userImgRef} className='user-profile-preview rounded-full m-auto shadow-lg' style={ {width: 150, height:150, borderRadius: 100, border: 'solid 2px #000'} }></div>
 
                 <form action="http://localhost:3002/nuevo-producto" method="post" encType="multipart/form-data" style={ {fontSize: 26} }>
-                    <InputFile  name='foto' placeholder='Foto' onChange={ handleOnChangePhoto } />
+
+                    <Button type="button" onClick={ () => setPictureModalState({...pictureModalState, visible: true})} className="bg-blue"><FontAwesomeIcon icon={ faPlus } size={'lg'} /> Agregar foto</Button>
+                    <Modal title='' visible={ pictureModalState.visible }  handleModalClose={  handlePictureModalClose } >
+                        <div style={ {display: 'flex', flexDirection: 'column', jusifyContent: 'center', alignItems: 'center'} }>
+                            <div ref={userImgRef} className='user-profile-preview rounded-full m-auto shadow-lg' style={ {width: 150, height:150, borderRadius: 100, border: 'solid 2px #000'} }></div>
+                            <InputFile  name='foto' placeholder='Foto' onChange={ handleOnChangePhoto } />
+                            <Button type="button" style={ {marginTop: 20} } onClick={ handlePictureModalClose } className="bg-primary">Cerrar ventana</Button>
+                        </div>
+                    </Modal>
 
                     <StyledInput type='text' placeholder='Nombre' label='Nombre' name='nombre'/>
                     <StyledInput type='text' placeholder='Precio' label='Precio' name='precio'/>
 
                     <label>
-                        <p style={ {fontWeight: 600} }>Venta por</p>
+                        <p style={ {fontWeight: 600, marginBottom: 5} }>Venta por</p>
                         <select name="venta_por" style={{fontSize: 26}}>
                             <option value='kg'>kg</option>
                             <option value='pza'>pza</option>
@@ -223,7 +252,7 @@ export default function Productos(){
                                         <td>${ item.price }</td>
                                         <td>{ item.venta_por }</td>
                                         <td><Button className="bg-red" onClick={ () => openDeleteModal(item) }><FontAwesomeIcon icon={faTimes} /> Eliminar</Button> </td>
-                                        <td><Button className="bg-blue" onClick={ () => openEditModal(item) }><FontAwesomeIcon icon={faPen} /> Editar</Button> </td>
+                                        <td><Button className="bg-blue" onClick={ () => openEditModal(item) }><FontAwesomeIcon icon={faPen} /> Editar precio</Button> </td>
                                     </tr>
                                 })
                             : null}
@@ -234,6 +263,33 @@ export default function Productos(){
 
             <Modal title='Mi titulo' visible={ modalState.visible }  handleModalClose={  handleModalClose } >
                 { modalState.content }
+            </Modal>
+
+
+            { /* Edit price modal */}
+            <Modal title='Mi titulo' visible={ priceModalState.visible }  handleModalClose={  handlePriceModalClose } >
+                <div className="product-card-modal">
+                    { currentProduct ? 
+                    <>
+                        <p>Editar precio de <strong style={ {fontSize: 16}}>{ currentProduct.name}</strong></p>
+
+                        <form className="modal-form" onSubmit={ updateProduct }>
+                            <input type='hidden' name='product_id' required defaultValue={currentProduct.id} />
+                            <input type='hidden' name='price' required value={ currentNumber } /> 
+                            <Total>Precio anterior: <strong style={{ fontSize: 36}}>${ currentProduct.price } </strong></Total>
+
+                            <Total style={ {margin: '20px auto 40px auto'} }>Nuevo precio: <strong style={{ fontSize: 36}}>${ currentNumber ? currentNumber : '0'} </strong></Total>
+
+                            <Keypad currentNumber={currentNumber} setCurrentNumber= { (val) => {setCurrentNumber(val); }} />
+
+                            <div className="modal-buttons" style={{marginTop: 20}}>
+                                <Button className="bg-primary" type='submit'>Guardar</Button>
+                                <Button type='button' className="bg-red" onClick={ handlePriceModalClose }>Cancelar</Button>
+                            </div>
+                        </form>
+                    </>
+                    : null }
+                </div>
             </Modal>
 
             <style>

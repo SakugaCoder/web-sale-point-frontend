@@ -426,12 +426,12 @@ export default function Suppliers(){
                                 </select></td>
 
                                 <td>Kg</td>
-                                <td>Fecha <input style={ {fontSize: 18} } type={'date'} name='date' onChange={ (evt) => setFilters({fecha: evt.target.value, proveedor: filters.proveedor, producto: filters.producto})}/></td>
+                                <td><input style={ {fontSize: 18} } type={'date'} name='date' onChange={ (evt) => setFilters({fecha: evt.target.value, proveedor: filters.proveedor, producto: filters.producto})}/></td>
                                 <td><select style={ {fontSize: 20} } name='supplier' onChange={ (evt) => setFilters({fecha: filters.fecha, proveedor: Number(evt.target.value), producto: filters.producto })}>
                                 <option value="0">Proveedor</option>
                                 { suppliers ? suppliers.filter( s => s.id !== 4).map(supplier => <option value={ supplier.id }> {supplier.nombre} </option>) : null }
                             </select></td>
-                                <td>Eliminar</td>
+                                <td></td>
                             </tr>
                         </thead>
 
