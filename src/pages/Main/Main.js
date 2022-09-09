@@ -253,13 +253,45 @@ export default function Main(){
     const [ contraEntrega, setContraEntrega ] = useState(false);
     const [ cashRegister, setCashRegister ] = useState(null);
     const [ paymentError, setPaymentError ]  = useState('');
+    const [ errorBascula, setErrorBascula ] = useState(null);
+    let counter = 0;
 
     const selectClientRef = useRef(null);
 
     const getCurrentKg = async () => {
         let res_kg = await SP_API('http://localhost:3002/bascula', 'GET');
-        // setCurrentKg(res_kg.kg_bascula);
-        setCurrentKg( roundNumber((Math.random() * 10)));
+        if(res_kg.kg_bascula === -100){
+            console.log('Error en bascula')
+            if(counter === 0){
+                setCurrentKg('Error');
+                // console.log('Ok no entra aqui')
+                setModalState({visible: true, content: errorBasculaModal()});
+                counter = 10;
+            }
+        }
+
+        else{
+            setCurrentKg(res_kg.kg_bascula);
+            counter = 0;
+        }
+        // else{
+        //     console.log('Buena lectura en bascula');
+        //     if(errorBascula === true){
+        //         console.log('Error definido')
+        //         setErrorBascula(false);
+        //     }
+        //     setCurrentKg(res_kg.kg_bascula);
+
+        // }
+        // setCurrentKg( roundNumber((Math.random() * 10)));
+    };
+
+    const errorBasculaModal = () => {
+        return <div className="product-card-modal">
+
+        <p style={ {fontSize: 26, color: 'red'} }>Error de comunicación. Reconectar báscula y reiniciar programa.</p>
+        <Button className="bg-white" type="button" onClick={ handleModalClose }>Aceptar</Button>
+    </div>
     };
 
     const getProducts = async () => {
@@ -442,32 +474,30 @@ export default function Main(){
     };
 
     const addProductToBasketHidden = item_data => {
-        item_data.kg = roundNumber(Number(currentKg));
-        // console.log(item_data.kg);
-        let item_exists = basket.find( basket_item => basket_item.id === item_data.id);
-        if(item_exists){
-            let new_basket = basket.map(basket_item => {
-                if(basket_item.id === item_data.id){
-                    console.log('econtrado, basket kg: '+ basket_item.kg, ' item kg: '+item_data.kg);
-                    return {
-                        ...basket_item,
-                        kg: Number(basket_item.kg) + Number(currentKg)
-                    };
-                }
-                return basket_item;
-            });
-            setBasket(new_basket);
+        if(currentKg !== 'Error'){
+            item_data.kg = roundNumber(Number(currentKg));
+            // console.log(item_data.kg);
+            let item_exists = basket.find( basket_item => basket_item.id === item_data.id);
+            if(item_exists){
+                let new_basket = basket.map(basket_item => {
+                    if(basket_item.id === item_data.id){
+                        console.log('econtrado, basket kg: '+ basket_item.kg, ' item kg: '+item_data.kg);
+                        return {
+                            ...basket_item,
+                            kg: Number(basket_item.kg) + Number(currentKg)
+                        };
+                    }
+                    return basket_item;
+                });
+                setBasket(new_basket);
+            }
+    
+            else{
+                setBasket([item_data, ...basket]);
+            }
+            setCurrentNumber('');
         }
-
-        else{
-            setBasket([item_data, ...basket]);
-        }
-        setCurrentNumber('');
         return null;
-    };
-
-    const modalContent = item_data => {
-        return 
     };
 
     const alert = msj => {
@@ -611,7 +641,7 @@ export default function Main(){
 
                         <CustomerDataItemBascula>
                                 <p>Báscula :</p>
-                                <strong>{ currentKg } kg</strong>
+                                <strong>{ currentKg !== 'Error' ? currentKg + ' kg': 'Error' } </strong>
                         </CustomerDataItemBascula>
 
                     </CustomerStatus>

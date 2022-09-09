@@ -81,6 +81,7 @@ export default function Suppliers(){
     const [cashRegisterStatus, setCashRegisterStatus] = useState(null);
     const { modalState, setModalState, handleModalClose } = useModal();
     const { modalState: withdrawModalState, setModalState: setWithdrawModalState, handleModalClose: handleWithdrawModalClose } = useModal();
+    const { modalState: cajaModalState, setModalState: setCajaModalState, handleModalClose: handleCajaModalClose } = useModal();
 
     const [ currentNumber, setCurrentNumber ] = useState('');
     const [ cashRegisterRecords, setCashRegisterRecords ]  = useState(null);
@@ -88,6 +89,7 @@ export default function Suppliers(){
     const [ withdrawals, setWithdrawals ] = useState(null);
     const [ errorMsj, setErrorMsj] = useState('');
     const [ detalleCaja, setDetalleCaja ] = useState(null);
+    const [ currentDetalleCaja, setCurrentDetalleCaja ] = useState(null);
 
 
     const fields = ['Nombre', 'Eliminar', 'Modificar'];
@@ -163,7 +165,7 @@ export default function Suppliers(){
         evt.preventDefault();
         let fondo = evt.target.fondo.value;
         if(fondo){
-            let data = { fondo };
+            let data = { fondo, cajero: localStorage.getItem('username')};
             let res = await SP_API('http://localhost:3002/abrir-caja', 'POST', data);
             console.log(res);
         }
@@ -175,12 +177,20 @@ export default function Suppliers(){
         let data = {
             ingresos: cashRegisterStatus.ingresos,
             retiros: cashRegisterStatus.retiros,
-            total: cashRegisterStatus.ingresos - cashRegisterStatus.retiros + cashRegisterStatus.caja.fondo
+            total: cashRegisterStatus.ingresos - cashRegisterStatus.retiros + cashRegisterStatus.caja.fondo,
+            cajero: localStorage.getItem('username')
         };
 
         let res = await SP_API('http://localhost:3002/cerrar-caja', 'POST', data);
         console.log(res);
-        window.location.reload();
+        if(res.error === false){
+            window.location.reload();
+        }
+
+        else{
+            alert('Error al cerrar la caja');
+        }
+        
     }
 
     const closeSingleCashRegister = async evt => {
@@ -190,6 +200,7 @@ export default function Suppliers(){
             ingresos: evt.target.ingresos.value,
             retiros: evt.target.retiros.value,
             total: evt.target.total.value,
+            cajero: localStorage.getItem('username')
         };
 
         console.log(data);
@@ -253,11 +264,9 @@ export default function Suppliers(){
         let res_retiros = await getItems('retiros/'+date);
         let res_pedidos = await getItems('pedidos/'+date);
         if(res_retiros.error === false && res_pedidos.error === false){
+            console.log(res_retiros, res_pedidos);
             setDetalleCaja({retiros: res_retiros.retiros, pedidos: res_pedidos.pedidos});
         }
-
-        console.log(res_retiros);
-        console.log(res_pedidos);
     }
 
     const confirmationModal = (_date) => {
@@ -274,23 +283,15 @@ export default function Suppliers(){
     };
 
     const detailModal = (item) => {
-        return <div className="product-card-modal">
-
-        <p>Detalle cierre de caja del dia <strong style={ {fontSize: 16}}>{ item.fecha }</strong></p>
-            <div>
-                <h3>Fecha: </h3><p>{ item.fecha } </p>
-            </div>
-            <form className="modal-form" onSubmit={ closeCashRegister }>
-                <div className="modal-buttons">
-                    <Button className="bg-red" type='button'>CERRA VENTANA</Button>
-                </div>
-            </form>
-        </div>
+        return 
     };
 
     const openDetailModal = item =>{
+        // setModalState({visible: true, content: detailModal(item)});
+        setCajaModalState({visible: true});
         obtenerDetalleCaja(item.fecha);
-        setModalState({visible: true, content: detailModal(item)});
+        setCurrentDetalleCaja(item);
+        console.log(item);
     }
 
     const openConfirmationModal = data => {
@@ -440,8 +441,81 @@ export default function Suppliers(){
                 </>
                 }
 
-            <Modal title='Mi titulo' visible={ modalState.visible }  handleModalClose={  handleModalClose } >
+            <Modal title='Mi titulo' visible={ modalState.visible }  handleModalClose={ () => { handleModalClose();  } } >
                 { modalState.content }
+            </Modal>
+
+            <Modal title='Detalle caja' visible={ cajaModalState.visible }  handleModalClose={ () => { handleCajaModalClose();  } } >
+                <div className="product-card-modal">
+                <p style={ {fontSize: 18} }>Detalle cierre de caja del dia <strong style={ {fontSize: 16}}>{ currentDetalleCaja ? currentDetalleCaja.fecha : null}</strong></p>
+                { detalleCaja ? 
+                <div style={ { display: 'flex', flexDirection: 'column', alignItems: 'flex-start'} }>
+                    <div style={ {display: 'flex', alignItems: 'center', marginBottom: -20} }>
+                        <h3 style={ {fontSize: 22} }>FECHA: </h3><p style={ {fontSize: 26, marginLeft: 10} }>{ currentDetalleCaja ? currentDetalleCaja.fecha : null} </p>
+                        <h3 style={ {fontSize: 22, marginLeft: 20} }>CAJERO: </h3><p style={ {fontSize: 26, marginLeft: 10} }> { currentDetalleCaja ? currentDetalleCaja.cajero : null} </p>
+                    </div>
+
+                    <h3 style={ {marginTop: 5, fontSize: 24, marginBottom: 5} }>RETIROS</h3>
+                    <div style={ { overflowX: 'auto', display: 'flex'}}>
+                        <StyledTable>
+                            <thead>
+                                <tr>
+                                    <td>Fecha</td>
+                                    <td>Monto</td>
+                                    <td>Concepto</td>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                            { detalleCaja.retiros ? 
+                                    detalleCaja.retiros.map( (item, index) => {
+                                    return <tr key={index}>
+                                        <td>{ item.fecha_retiro }</td>
+                                        <td>${ item.monto }</td>
+                                        <td>{ item.concepto }</td>
+                                    </tr>
+                                })
+                            : null }
+                            </tbody>
+                        </StyledTable>
+                    </div>
+
+                    <h3 style={ {fontSize: 24, marginBottom: 5} }>PEDIDOS</h3>
+                    <div style={ { overflowX: 'auto', display: 'flex', marginBottom: 20}}>
+                        <StyledTable>
+                            <thead>
+                                <tr>
+                                    <td>Fecha</td>
+                                    <td>Cliente</td>
+                                    <td>Chalan</td>
+                                    <td>Total</td>
+                                    <td>Productos</td>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                            { ( detalleCaja.pedidos ? 
+                                    detalleCaja.pedidos.map( (item, index) => {
+                                        return <tr key={index}>
+                                            <td>{ item.fecha }</td>
+                                            <td>{ item.id_cliente } - { item.nombre_cliente }</td>
+                                            <td><p> { item.chalan ? `${item.chalan.split(',')[0]} - ${item.chalan.split(',')[1]}` : null } </p> </td>
+                                            <td>{'$'+ item.total_pagar}</td>
+                                            <td  style={ {maxWidth: 400} }>{ item.productos }</td>
+                                        </tr> 
+                                    })
+                                : null ) }
+                            </tbody>
+                        </StyledTable>
+                    </div>
+                </div>
+                : null }
+                <form className="modal-form" onSubmit={ closeCashRegister }>
+                    <div className="modal-buttons">
+                        <Button className="bg-red" style={ { display: 'block', margin: 'auto'} } type='button' onClick={ () => { setCajaModalState({visible: false}); setDetalleCaja(null); } }>CERRA VENTANA</Button>
+                    </div>
+                </form>
+            </div>
             </Modal>
 
             <Modal visible={ withdrawModalState.visible }  handleModalClose={ () => { handleWithdrawModalClose(); setErrorMsj(''); } } >
