@@ -610,7 +610,7 @@ export default function Main(){
 
 
                         <CustomerDataItemBascula>
-                                <p>Bascula:</p>
+                                <p>Báscula :</p>
                                 <strong>{ currentKg } kg</strong>
                         </CustomerDataItemBascula>
 

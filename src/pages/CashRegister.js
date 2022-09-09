@@ -1,8 +1,6 @@
 import Layout from "../components/Layout.";
 import styled from "styled-components";
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTimes, faPen } from "@fortawesome/free-solid-svg-icons";
 import Input from "../components/Input/Input";
 import Button from "../components/Button";
 import Keypad from "../components/Keypad";
@@ -11,6 +9,8 @@ import { useState, useEffect} from 'react';
 import { getItems, updateItem, deleteItem, insertItem, SP_API } from "../utils/SP_APPI";
 import Modal from "../components/Modal/Modal";
 import useModal from "../hooks/useModal";
+
+import { roundNumber } from "../utils/Operations";
 
 const Container = styled.div`
     padding: 20px;
@@ -61,7 +61,7 @@ const StyledTable = styled.table`
     }
 
     td{
-        padding: 5px;
+        padding: 10px;
     }
       
     thead tr {
@@ -84,7 +84,10 @@ export default function Suppliers(){
 
     const [ currentNumber, setCurrentNumber ] = useState('');
     const [ cashRegisterRecords, setCashRegisterRecords ]  = useState(null);
-    const [filters, setFilters] = useState({fecha: null});
+    const [ filters, setFilters ] = useState({fecha: null, fecha_retiro: null});
+    const [ withdrawals, setWithdrawals ] = useState(null);
+    const [ errorMsj, setErrorMsj] = useState('');
+    const [ detalleCaja, setDetalleCaja ] = useState(null);
 
 
     const fields = ['Nombre', 'Eliminar', 'Modificar'];
@@ -93,8 +96,10 @@ export default function Suppliers(){
         let res = await getItems('proveedores');
         let res_cash_register = await getItems('estado-caja');
         let res_cash_register_records = await getItems('cierres-caja');
+        let res_withdrawals = await getItems('retiros');
         console.log(res_cash_register_records.cierres_caja);
         setCashRegisterRecords(res_cash_register_records.cierres_caja);
+        setWithdrawals(res_withdrawals);
 
         if(res.err !== true){
             setTableData(res);
@@ -178,13 +183,37 @@ export default function Suppliers(){
         window.location.reload();
     }
 
+    const closeSingleCashRegister = async evt => {
+        evt.preventDefault();
+        let data = {
+            date: evt.target.date.value,
+            ingresos: evt.target.ingresos.value,
+            retiros: evt.target.retiros.value,
+            total: evt.target.total.value,
+        };
+
+        console.log(data);
+        
+        let res = await SP_API('http://localhost:3002/cerrar-caja-previa', 'POST', data);
+        console.log(res);
+        window.location.reload();
+    }
+
     const withdrawMoney = async evt => {
         evt.preventDefault();
         let monto = evt.target.monto.value;
-        let data = {monto}
-        let res = await SP_API('http://localhost:3002/retirar-dinero', 'POST', data);
-        console.log(res);
-        window.location.reload();
+        let concepto = evt.target.concepto.value;
+        setErrorMsj('');
+        if(Number(monto) > 0 && concepto){
+            let data = {monto, concepto}
+            let res = await SP_API('http://localhost:3002/retirar-dinero', 'POST', data);
+            console.log(res);
+            window.location.reload();
+        }
+
+        else{
+            setErrorMsj('Error. Favor de completar todos los campos.');
+        }
     }
 
     const editModal = item_data => {
@@ -203,20 +232,32 @@ export default function Suppliers(){
     </div>
     };
 
-    const deleteSupplier = async evt => {
-        evt.preventDefault();
-        let supplier_id = evt.target.supplier_id.value;
-        
-        handleModalClose();
+    const closeSingleCashRegisterModal = (_date, total, retiros, ingresos) => {
+        return <div className="product-card-modal">
 
-        let res = await deleteItem('proveedor', supplier_id);
-        if(res.err === false){
-            initialFunction();    
+        <p>Confirma hacer el cierre de caja del dia <strong style={ {fontSize: 16}}>{ _date }</strong></p>
+            <form className="modal-form" onSubmit={ closeSingleCashRegister }>
+                <input type='hidden' value={_date} name='date' />
+                <input type='hidden' value={total} name='total' />
+                <input type='hidden' value={retiros} name='retiros' />
+                <input type='hidden' value={ingresos} name='ingresos' />
+                <div className="modal-buttons">
+                    <Button className="bg-red" type='submit'>SI, CERRAR CAJA</Button>
+                    <Button className="bg-white" onClick={ handleModalClose }>CANCELAR</Button>
+                </div>
+            </form>
+        </div>
+    };
+
+    const obtenerDetalleCaja = async date => {
+        let res_retiros = await getItems('retiros/'+date);
+        let res_pedidos = await getItems('pedidos/'+date);
+        if(res_retiros.error === false && res_pedidos.error === false){
+            setDetalleCaja({retiros: res_retiros.retiros, pedidos: res_pedidos.pedidos});
         }
 
-        else{
-            alert('Error al eliminar proveedor');
-        }
+        console.log(res_retiros);
+        console.log(res_pedidos);
     }
 
     const confirmationModal = (_date) => {
@@ -231,6 +272,26 @@ export default function Suppliers(){
             </form>
         </div>
     };
+
+    const detailModal = (item) => {
+        return <div className="product-card-modal">
+
+        <p>Detalle cierre de caja del dia <strong style={ {fontSize: 16}}>{ item.fecha }</strong></p>
+            <div>
+                <h3>Fecha: </h3><p>{ item.fecha } </p>
+            </div>
+            <form className="modal-form" onSubmit={ closeCashRegister }>
+                <div className="modal-buttons">
+                    <Button className="bg-red" type='button'>CERRA VENTANA</Button>
+                </div>
+            </form>
+        </div>
+    };
+
+    const openDetailModal = item =>{
+        obtenerDetalleCaja(item.fecha);
+        setModalState({visible: true, content: detailModal(item)});
+    }
 
     const openConfirmationModal = data => {
         let date_ob = new Date();
@@ -248,20 +309,10 @@ export default function Suppliers(){
         setModalState({visible: true, content: confirmationModal(datetime)});
     };
 
-    const deleteModal = item_data => {
-        return <div className="product-card-modal">
+    const openSingleCashRegisterModal = (date, total, retiros, ingresos) =>{
+        setModalState({visible: true, content: closeSingleCashRegisterModal(date, total, retiros, ingresos)});
+    }
 
-        <p>¿De verdad desea eliminar a <strong style={ {fontSize: 16}}>{ item_data.nombre}</strong>?</p>
-
-        <form className="modal-form" onSubmit={ deleteSupplier }>
-            <input type='hidden' name='supplier_id' defaultValue={ item_data.id } required/>
-            <div className="modal-buttons" style={ {marginTop: 20} }>
-                <Button className="bg-red" >Si, eliminar</Button>
-                <Button type='submit' onClick={ handleModalClose }>Cancelar</Button>
-            </div>
-        </form>
-    </div>
-    };
 
     useEffect( () => {
         initialFunction();
@@ -318,6 +369,7 @@ export default function Suppliers(){
                                     <td>Ingresos</td>
                                     <td>Retiros</td>
                                     <td>Total</td>
+                                    <td>Acciones</td>
                                 </tr>
                             </thead>
 
@@ -333,9 +385,36 @@ export default function Suppliers(){
                                     return <tr key={index}>
                                         <td>{ item.fecha }</td>
                                         <td>${ item.fondo }</td>
-                                        <td>${ item.ingresos }</td>
-                                        <td>${ item.retiros }</td>
-                                        <td>${ item.total }</td>
+                                        <td>${ item.estado === 'abierta' ? roundNumber(item.SumaIngresos): item.ingresos}</td>
+                                        <td>${ item.estado === 'abierta' ? roundNumber(item.SumaRetiros) : item.retiros}</td>
+                                        <td>${ item.estado === 'abierta' ? roundNumber( (item.fondo + item.SumaIngresos) - item.SumaRetiros): item.total }</td>
+                                        <td style={ {display: 'flex'} }><Button className="bg-blue" onClick={ () => openDetailModal(item) }>Detalle</Button> { item.estado === 'abierta' ? <Button className="bg-red" ml onClick={ () => openSingleCashRegisterModal(item.fecha, roundNumber( (item.fondo + item.SumaIngresos) - item.SumaRetiros), roundNumber(item.SumaRetiros), roundNumber(item.SumaIngresos))}>Cerrar caja</Button> : null}</td>
+                                    </tr>
+                                })
+                            : null}
+                            </tbody>
+                        </StyledTable>
+                    </div>
+
+                    <h2>LISTA DE RETIROS</h2>
+
+                    <div style={ { overflowX: 'auto', display: 'flex'}}>
+                        <StyledTable>
+                            <thead>
+                                <tr>
+                                    <td>Fecha</td>
+                                    <td>Monto</td>
+                                    <td>Concepto</td>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                            { withdrawals ? 
+                                    withdrawals.retiros.map( (item, index) => {
+                                    return <tr key={index}>
+                                        <td>{ item.fecha_retiro }</td>
+                                        <td>${ item.monto }</td>
+                                        <td>{ item.concepto }</td>
                                     </tr>
                                 })
                             : null}
@@ -365,14 +444,16 @@ export default function Suppliers(){
                 { modalState.content }
             </Modal>
 
-            <Modal visible={ withdrawModalState.visible }  handleModalClose={  handleWithdrawModalClose } >
+            <Modal visible={ withdrawModalState.visible }  handleModalClose={ () => { handleWithdrawModalClose(); setErrorMsj(''); } } >
                 <form onSubmit={ withdrawMoney }>
                         <input type='hidden' value={currentNumber ? currentNumber : '0'} name='monto' required/>
+                        <PaymentAmount>Concepto: <input type='text' style={ {fontSize: 26, maxWidth: 300, border: 'solid 2px #000'} } name='concepto' required/></PaymentAmount>
                         <PaymentAmount>Retiro: ${ currentNumber ? currentNumber : '0'}</PaymentAmount>
+                        { errorMsj ? <p style={ {fontSize: 26, color: 'red', textAlign: 'center'} }>{ errorMsj }</p> : null}
                         <Keypad currentNumber={currentNumber} setCurrentNumber={setCurrentNumber} />
                         <ButtonGroup>
                             <ControlButton type='submit' className="bg-primary">RETIRAR</ControlButton>
-                            <ControlButton type='reset' className="bg-red" onClick={ () => { setWithdrawModalState({...withdrawModalState, visible: false}); setCurrentNumber('')} }>CANCELAR</ControlButton>
+                            <ControlButton type='reset' className="bg-red" onClick={ () => { setWithdrawModalState({...withdrawModalState, visible: false}); setCurrentNumber(''); setErrorMsj(''); } }>CANCELAR</ControlButton>
                         </ButtonGroup>
                 </form>
             </Modal>

@@ -18,13 +18,14 @@ const StyledInput = styled.input`
     border-radius: 20px;
     width: 100%;
     font-size: 26px;
+    max-width: ${props => props.maxWidth ? props.maxWidth: '100%'};
 `;
 
 export default function Input(props){
     return(
         <StyledLabel>
             <p>{ props.label }</p>
-            <StyledInput type={ props.type ? props.type: 'text'} placeholder={ props.placeholder}  name={ props.name } defaultValue={ props.defaultValue ? props.defaultValue : null} />
+            <StyledInput type={ props.type ? props.type: 'text'} placeholder={ props.placeholder} maxWidth={ props.maxWidth } name={ props.name } defaultValue={ props.defaultValue ? props.defaultValue : null} />
         </StyledLabel>
     );
 }

@@ -56,14 +56,13 @@ export default function Clientes(){
     const [tableData, setTableData] = useState(null);
     const [currentUserImg, setCurrentUserImg] = useState('');
     const {modalState, setModalState, handleModalClose } = useModal();
+    const [filters, setFilters] = useState({id: null, nombre: null, telefono: null});
     const [username, setUsername] = useState(null);
     const [error, setError] = useState('');
 
     const userImgRef = useRef();
     const fileTypes = ['image/png', 'image/jpg', 'image/jpeg'];
     const fields = ['Id', 'Nombre', 'Telefono','Eliminar', 'Modificar'];
-
-    
     
     const initialFunction = async () => {
         let res = await getItems('clientes');
@@ -145,7 +144,7 @@ export default function Clientes(){
         <form className="modal-form" onSubmit={ updateClient } style={ {fontSize: '26px'} } >
             <input type='hidden' name='client_id' required defaultValue={item_data.id} /> 
             <Input placeholder='Nombre' label='Nombre' name='nombre' required defaultValue={item_data.nombre} /> 
-            <Input placeholder='Telefono' label='Telefono' name='telefono' required defaultValue={item_data.telefono} /> 
+            <Input placeholder='Teléfono' label='Teléfono' name='telefono' required defaultValue={item_data.telefono} /> 
             <div className="modal-buttons">
                 <Button className="bg-primary" type='submit'>Guardar</Button>
                 <Button className="bg-red" onClick={ handleModalClose }>Cancelar</Button>
@@ -153,7 +152,6 @@ export default function Clientes(){
         </form>
     </div>
     };
-
 
     const deleteClient = async evt => {
         evt.preventDefault();
@@ -170,7 +168,6 @@ export default function Clientes(){
             alert('Error al eliminar el cliente');
         }
     }
-
 
     const openDeleteModal = product_data => {
         setModalState({visible: true, content: deleteModal(product_data)});
@@ -212,6 +209,31 @@ export default function Clientes(){
             evt.target.submit();
         }
     }
+
+    function filterData(){
+        return tableData.filter( item => {
+            // Filter by date
+            if(filters.id)
+                return Number(item.id) === Number(filters.id);
+            else
+                return item;	
+        }).
+        filter( item => {
+            // Filter by client
+            if(filters.nombre)
+                if(filters.nombre)
+                    return item.nombre.toLowerCase().includes(filters.nombre.toLowerCase())
+            return item;
+        }).
+        filter( item => {
+            // Filter by chalan
+            if(filters.telefono)
+                if(filters.telefono)
+                    return item.telefono.includes(filters.telefono)
+            return item;
+        })
+    }
+
     
 
     return(
@@ -220,7 +242,7 @@ export default function Clientes(){
                 <h2>NUEVO CLIENTE</h2>
                 <form onSubmit={ checkClientName } style={ {fontSize: 26} }>
                     <StyledInput type='text' placeholder='Nombre' label='Nombre' name='nombre' required/>
-                    <StyledInput type='text' placeholder='Telefono' label='Telefono' name='telefono'/>
+                    <StyledInput type='text' placeholder='Teléfono' label='Teléfono' name='telefono'/>
                     <p style={ {color: '#ff0000'} } > { error } </p>
                     <ButtonGroup>
                         <ControlButton type='submit' className="bg-primary">GUARDAR</ControlButton>
@@ -235,15 +257,19 @@ export default function Clientes(){
                     <StyledTable>
                         <thead>
                             <tr>
-                                { fields.map( (item, index) => <td key={index}> { item} </td>)}
+                                <td><input placeholder='Id' type={'text'} style={ {padding: 10, fontSize: '18px'} } onChange={ (event) => setFilters({...filters, id: event.target.value }) }/> </td>
+                                <td><input placeholder='Nombre' type={'text'} style={ {padding: 10, fontSize: '18px'} } onChange={ (event) => setFilters({...filters, nombre: event.target.value }) }/> </td>
+                                <td><input placeholder='Teléfono' type={'text'} style={ {padding: 10, fontSize: '18px'} } onChange={ (event) => setFilters({...filters, telefono: event.target.value }) }/> </td>
+                                <td>Eliminar</td>
+                                <td>Modificar</td>
                             </tr>
                         </thead>
 
                         <tbody>
                             { tableData ? 
-                                tableData.map( (item, index) => {
+                                filterData().map( (item, index) => {
                                     return <tr key={index}>
-                                        <td>{ item.id }</td>
+                                        <td>{ item.id }</td> 
                                         <td>{ item.nombre }</td>
                                         <td>{ item.telefono }</td>
                                         <td><Button className="bg-red" onClick={ () => openDeleteModal(item) }><FontAwesomeIcon icon={faTimes} /> Eliminar</Button> </td>

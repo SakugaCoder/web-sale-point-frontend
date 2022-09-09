@@ -26,7 +26,6 @@ export async function SP_API(url, method, data){
     if(!data)
         data = {};
 
-
     let params = {
         method,
         headers: {

@@ -7,7 +7,7 @@ import Input from "../components/Input/Input";
 import Button from "../components/Button";
 
 import { useState, useEffect} from 'react';
-import { getItems, updateItem, deleteItem, insertItem } from "../utils/SP_APPI";
+import { getItems, updateItem, deleteItem, insertItem, SP_API } from "../utils/SP_APPI";
 import Modal from "../components/Modal/Modal";
 import useModal from "../hooks/useModal";
 
@@ -58,10 +58,9 @@ const StyledTable = styled.table`
 export default function Suppliers(){
     const [tableData, setTableData] = useState(null);
     const { modalState, setModalState, handleModalClose } = useModal();
+    const [ errorMsj, setErrorMsj ] = useState('');
 
-    const fields = ['Nombre', 'Rol', 'Eliminar', 'Modificar'];
-
-    
+    const fields = ['Nombre', 'Rol', 'Acciones'];
     
     const initialFunction = async () => {
         let res = await getItems('usuarios');
@@ -94,6 +93,10 @@ export default function Suppliers(){
         setModalState({visible: true, content: editModal(data)});
     };
 
+    const openPasswordModal = data => {
+        setModalState({visible: true, content: passwordModal(data)});
+    };
+
     const updateUser = async evt => {
         evt.preventDefault();
         let data = {
@@ -114,6 +117,41 @@ export default function Suppliers(){
         }
     };
 
+    const changePassword = async evt => {
+        evt.preventDefault();
+        setErrorMsj('');
+        if(evt.target.pass.value && evt.target.pass_confirmation.value){
+            console.log('pass filled')
+            if(evt.target.pass.value === evt.target.pass_confirmation.value){
+                let data = {
+                    user_id: evt.target.user_id.value,
+                    pass: evt.target.pass.value
+                };
+                
+                handleModalClose();
+        
+                let res = await SP_API('http://localhost:3002/cambiar-password-usuario', 'post', data);
+                if(res.err === false){
+                    initialFunction();    
+                }
+        
+                else{
+                    alert('Error al editar usuario');
+                }
+            }
+
+            else{
+                // setErrorMsj('Error. Contraseñas no coinciden');    
+                console.log('pass not match')
+            }
+        }
+
+        else{
+            console.log('error pass not filled');
+            // setErrorMsj('Error. Contraseñas no coinciden');
+        }
+    };
+
     const editModal = item_data => {
         return <div className="product-card-modal">
 
@@ -123,7 +161,7 @@ export default function Suppliers(){
             <input type='hidden' name='user_id' required defaultValue={item_data.id} /> 
             <Input placeholder='Nombre' label='Nombre' name='nombre' required defaultValue={item_data.nombre} /> 
             <label style={ {marginBottom: 20} }>
-                <p>Rol</p>
+                <p style={ {fontSize: 26} }>Rol</p>
                 <select name="rol" defaultValue={'' + item_data.rol } style={ {fontSize: 26} }>
                     <option value="0">Usuario</option>
                     <option value="1" selected>Administrador</option>
@@ -132,6 +170,27 @@ export default function Suppliers(){
             <div className="modal-buttons">
                 <Button className="bg-primary" type='submit'>Guardar</Button>
                 <Button className="bg-red" onClick={ handleModalClose }>Cancelar</Button>
+            </div>
+        </form>
+    </div>
+    };
+
+    const passwordModal = item_data => {
+        return <div className="product-card-modal">
+
+        <p>Editar contraseña de <strong style={ {fontSize: 16}}>{ item_data.nombre }</strong></p>
+
+        <form className="modal-form" onSubmit={ changePassword }>
+            <input type='hidden' name='user_id' required defaultValue={item_data.id} /> 
+            <Input placeholder='Nueva contraseña' label='Nueva contraseña' name='pass' /> 
+            <Input placeholder='Confirmar contraseña' label='Confirmar contraseña' name='pass_confirmation' /> 
+
+            
+            { errorMsj ? <p style={ {color: '#ff0000'} } > {errorMsj} </p>: null}
+
+            <div className="modal-buttons">
+                <Button className="bg-red" type='submit'>Cambiar contraseña</Button>
+                <Button className="bg-white" onClick={ handleModalClose }>Cancelar</Button>
             </div>
         </form>
     </div>
@@ -153,7 +212,6 @@ export default function Suppliers(){
             alert('Error al eliminar proveedor');
         }
     }
-
 
     const openDeleteModal = data => {
         setModalState({visible: true, content: deleteModal(data)});
@@ -189,7 +247,7 @@ export default function Suppliers(){
                     <StyledInput type='text' placeholder='Nombre' label='Nombre' name='nombre' required/>
                     <StyledInput type='text' placeholder='Contraseña' label='Contraseña' name='pswd' required/>
                     <label>
-                        <p style={ {fontSize: 26} }>Rol</p>
+                        <p style={ {fontSize: 26, marginBottom: 10} }>Rol</p>
                         <select name="rol" style={ {fontSize: 26} }>
                             <option value="0">Usuario</option>
                             <option value="1" selected>Administrador</option>
@@ -218,8 +276,11 @@ export default function Suppliers(){
                                     return <tr key={index}>
                                         <td>{ item.nombre }</td>
                                         <td>{ item.rol === 1 ? 'Administrador' : 'Usuario' }</td>
-                                        <td><Button className="bg-red" onClick={ () => openDeleteModal(item) }><FontAwesomeIcon icon={faTimes} /> Eliminar</Button> </td>
-                                        <td><Button className="bg-blue" onClick={ () => openEditModal(item) }><FontAwesomeIcon icon={faPen} /> Editar</Button> </td>
+                                        <td style={ {display: 'flex'} }>
+                                            <Button className="bg-red" onClick={ () => openDeleteModal(item) }><FontAwesomeIcon icon={faTimes} /> Eliminar</Button>
+                                            <Button className="bg-blue" ml onClick={ () => openEditModal(item) }><FontAwesomeIcon icon={faPen} /> Editar</Button>
+                                            <Button className="bg-light-blue" ml onClick={ () => openPasswordModal(item) }><FontAwesomeIcon icon={faPen} /> Cambiar contraseña</Button>
+                                        </td>
                                     </tr>
                                 })
                             : null}

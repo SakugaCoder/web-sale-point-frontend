@@ -122,7 +122,7 @@ export default function Chalanes(){
         <form className="modal-form" onSubmit={ updateChalan }>
             <input type='hidden' name='chalan_id' required defaultValue={item_data.id} /> 
             <Input placeholder='Nombre' label='Nombre' name='nombre' required defaultValue={item_data.nombre} /> 
-            <Input placeholder='Telefono' label='Telefono' name='telefono' required defaultValue={item_data.telefono} /> 
+            <Input placeholder='Telefono' label='Teléfono' name='telefono' required defaultValue={item_data.telefono} /> 
             <div className="modal-buttons">
                 <Button className="bg-primary" type='submit'>Guardar</Button>
                 <Button className="bg-red" onClick={ handleModalClose }>Cancelar</Button>
@@ -184,7 +184,7 @@ export default function Chalanes(){
                 <form onSubmit={ createChalan } style={ {fontSize: '26px'} }>
 
                     <StyledInput type='text' placeholder='Nombre' label='Nombre' name='nombre' required/>
-                    <StyledInput type='text' placeholder='Telefono' label='Telefono' name='telefono'/>
+                    <StyledInput type='text' placeholder='Teléfono' label='Teléfono' name='telefono'/>
 
                     <ButtonGroup>
                         <ControlButton type='submit' className="bg-primary">GUARDAR</ControlButton>

@@ -3,8 +3,9 @@ import styled from "styled-components";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes, faPen } from "@fortawesome/free-solid-svg-icons";
-import Input from "../components/Input/Input";
+import StyledInput from "../components/Input/Input";
 import Button from "../components/Button";
+import { SP_API } from "../utils/SP_APPI";
 
 import { useState, useEffect, useMemo} from 'react';
 import { useTable, useSortBy } from 'react-table';
@@ -14,10 +15,6 @@ import useModal from "../hooks/useModal";
 
 const Container = styled.div`
     padding: 20px;
-`;
-
-const StyledInput = styled(Input)`
-    background-color: red;
 `;
 
 const ButtonGroup = styled.div`
@@ -59,18 +56,15 @@ const StyledTable = styled.table`
     }
 `;
 
-const StyledForm = styled.div`
-    p{
-        font-size: 30px;
-    }
-`;
 export default function Suppliers(){
     const [tableData, setTableData] = useState(null);
     const [shopping, setShopping] = useState(null);
     const [products, setProducts] = useState(null);
     const [suppliers, setSuppliers] = useState(null);
     const { modalState, setModalState, handleModalClose } = useModal();
+    const [ errorMsj, setErrorMsj ] = useState('');
     const [filters, setFilters] = useState({fecha: null, proveedor: null, producto: null});
+    const [ currentDate, setCurrentDate ] = useState('');
 
     const fields = ['Producto', 'Kg','Fecha', 'Proveedor', 'Eliminar'];
     
@@ -98,76 +92,51 @@ export default function Suppliers(){
 
         let res_suppliers = await getItems('Proveedores');
         setSuppliers(res_suppliers);
+
+        let res_date = await SP_API('http://localhost:3002/date', 'GET');
+        setCurrentDate(res_date);
+        console.log(res_date);
     };
 
     const createShopping = async evt =>{
+        setErrorMsj('');
         evt.preventDefault();
         let data = {
             product_id: Number(evt.target.product_id.value),
             kg: evt.target.kg.value,
             date: evt.target.date.value,
             supplier_id: Number(evt.target.supplier_id.value),
+            costo: Number(evt.target.costo.value),
+            es_retiro: evt.target.es_retiro.checked,
         };
 
-        let res = await insertItem('compra', data);
-        if(res.err === false){
-            evt.target.reset(); 
-            initialFunction();   
+
+
+        if(data.product_id && data.kg && data.date && data.supplier_id && data.costo){
+            let detalle_proveedor = suppliers.find( supplier => supplier.id === Number(evt.target.supplier_id.value) );
+            let detalle_producto = products.find( product => product.id === Number(evt.target.product_id.value));
+
+            data.detalle_proveedor = detalle_proveedor;
+            data.detalle_producto = detalle_producto;
+
+            console.log(data);
+            
+            let res = await insertItem('compra', data);
+            if(res.err === false){
+                evt.target.reset(); 
+                initialFunction();   
+            }
+
+            else{
+                alert('Error al actualizar compra');
+            }
+            return;
         }
 
-        else{
-            alert('Error al actualizar compra');
-        }
+        setErrorMsj('Error. Favor de completar todos los campos.');
+
+
     };
-    
-    /*
-    const openEditModal = data => {
-        setModalState({visible: true, content: editModal(data)});
-    };
-
-    const updateUser = async evt => {
-        evt.preventDefault();
-        let data = {
-            nombre: evt.target.nombre.value,
-            rol: evt.target.rol.value,
-            user_id: evt.target.user_id.value
-        };
-        
-        handleModalClose();
-
-        let res = await updateItem('usuario', data);
-        if(res.err === false){
-            initialFunction();    
-        }
-
-        else{
-            alert('Error al actualizar usuario');
-        }
-    };
-
-    const editModal = item_data => {
-        return <div className="product-card-modal">
-
-        <p>Editar datos de <strong style={ {fontSize: 16}}>{ item_data.nombre }</strong></p>
-
-        <form className="modal-form" onSubmit={ updateUser }>
-            <input type='hidden' name='user_id' required defaultValue={item_data.id} /> 
-            <Input placeholder='Nombre' label='Nombre' name='nombre' required defaultValue={item_data.nombre} /> 
-            <label style={ {marginBottom: 20} }>
-                <p>Rol</p>
-                <select name="rol" defaultValue={'' + item_data.rol }>
-                    <option value="0">Usuario</option>
-                    <option value="1" selected>Administrador</option>
-                </select>
-            </label>
-            <div className="modal-buttons">
-                <Button className="bg-primary" type='submit'>Guardar</Button>
-                <Button className="bg-red" onClick={ handleModalClose }>Cancelar</Button>
-            </div>
-        </form>
-    </div>
-    };
-    */
 
     const deleteShopping = async evt => {
         evt.preventDefault();
@@ -314,27 +283,6 @@ export default function Suppliers(){
         )
     }
 
-    /*
-    function applyFilters(evt){
-        evt.preventDefault();
-        let date = evt.target.date.value;
-        let supplier = evt.target.supplier.value;
-        console.log(supplier);
-        if(date && (supplier !== '0')){
-            setTableData( shopping.filter( item => item.fecha === date && item.id_proveedor === Number(supplier) ));
-            console.log('both');
-        }
-
-        else if(date){
-            setTableData( shopping.filter( item => item.fecha === date));
-            console.log('only date');
-        }
-        else if(supplier !== '0'){
-            setTableData( shopping.filter( item => item.id_proveedor === Number(supplier) ));
-            console.log('supplier');
-        }
-    }*/
-
     function resetFilters(){
         setTableData(shopping);
     }
@@ -375,24 +323,34 @@ export default function Suppliers(){
                 <>
                 <h2>NUEVA COMPRA</h2>
                 <form onSubmit={ createShopping }>
-                    <label>
-                        <p>Producto</p>
-                        <select name="product_id">
-                            <option value="0">Producto</option>
-                            { products ? products.map(product => <option value={ product.id }> {product.name} </option>) : null}
-                        </select>
-                    </label>
+                    <div style={ {display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap'} }>
+                        <label>
+                            <p>Producto</p>
+                            <select name="product_id">
+                                <option value="0">Seleccionar producto</option>
+                                { products ? products.map(product => <option value={ product.id }> {product.name} </option>) : null}
+                            </select>
+                        </label>
 
-                    <StyledInput type='text' placeholder='Kg' label='Kg' name='kg' required/>
-                    <StyledInput type='date' placeholder='Fecha' label='Fecha' name='date' required/>
+                        <StyledInput type='text' placeholder='Kg' label='Kg' name='kg' required maxWidth='300px'/>
+                        <StyledInput type='date' placeholder='Fecha' label='Fecha' name='date' required maxWidth='300px' defaultValue={ currentDate ? currentDate.date : null }/>
 
-                    <label>
-                        <p>Proveedor</p>
-                        <select name="supplier_id">
-                            <option value="0">Proveedor</option>
-                            { suppliers ? suppliers.filter( s => s.id !== 4).map(supplier => <option value={ supplier.id }> {supplier.nombre} </option>) : null}
-                        </select>
-                    </label>
+                        <label>
+                            <p>Proveedor</p>
+                            <select name="supplier_id">
+                                <option value="0">Proveedor</option>
+                                { suppliers ? suppliers.filter( s => s.id !== 4).map(supplier => <option value={ supplier.id }> {supplier.nombre} </option>) : null}
+                            </select>
+                        </label>
+
+                        <StyledInput type='text' placeholder='Costo' label='Costo' name='costo' required maxWidth='300px'/>
+
+                        <label>
+                            <p>Agregar como retiro</p>
+                            <input type={'checkbox'} name="es_retiro" style={ {width: 30, height: 30, border: 'solid 2px #000'} } />
+                        </label>
+                    </div>
+                    <p className="error-msj">{ errorMsj }</p>
 
                     <ButtonGroup>
                         <ControlButton type='submit' className="bg-primary">GUARDAR</ControlButton>
@@ -400,21 +358,14 @@ export default function Suppliers(){
                     </ButtonGroup>
                 </form>
 
-                <h2>LISTA DE COMPRAS</h2>
-                <Button className='bg-red' onClick={ () => window.location.reload() }>REINICIAR FILTROS</Button>
-
-                <form style={ {marginBottom: 20, marginTop: 20} }>
-                    <div style={ {display: 'flex', alignItems: 'center', justifyContent: 'flex-start'} }>
-
-                        {/* <div style={ {display: 'flex'} }>
-                            <Button className="bg-primary" type='submit' small>Aplicar filtros</Button>
-                            <Button className="bg-red" ml type='reset' onClick={resetFilters}>Reiniciar filtos</Button>
-                        </div> */}
-                    </div>
-                </form>
+                <div style={ {display: 'flex', justifyContent: 'space-between', width: '100%', marginTop: '40px'} }>
+                    <h2>LISTA DE COMPRAS</h2>
+                    <Button className='bg-red' onClick={ () => window.location.reload() }>REINICIAR FILTROS</Button>
+                </div>
+                
 
 
-                <div style={ { overflowX: 'auto'}}>
+                <div style={ { overflowX: 'auto', marginTop: 20}}>
                     {/* <TableWraper openDeleteModal={openDeleteModal} />*/}
                     
                     <StyledTable>
@@ -427,10 +378,13 @@ export default function Suppliers(){
 
                                 <td>Kg</td>
                                 <td><input style={ {fontSize: 18} } type={'date'} name='date' onChange={ (evt) => setFilters({fecha: evt.target.value, proveedor: filters.proveedor, producto: filters.producto})}/></td>
-                                <td><select style={ {fontSize: 20} } name='supplier' onChange={ (evt) => setFilters({fecha: filters.fecha, proveedor: Number(evt.target.value), producto: filters.producto })}>
-                                <option value="0">Proveedor</option>
-                                { suppliers ? suppliers.filter( s => s.id !== 4).map(supplier => <option value={ supplier.id }> {supplier.nombre} </option>) : null }
-                            </select></td>
+                                <td>
+                                    <select style={ {fontSize: 20} } name='supplier' onChange={ (evt) => setFilters({fecha: filters.fecha, proveedor: Number(evt.target.value), producto: filters.producto })}>
+                                        <option value="0">Proveedor</option>
+                                        { suppliers ? suppliers.filter( s => s.id !== 4).map(supplier => <option value={ supplier.id }> {supplier.nombre} </option>) : null }
+                                    </select>
+                                </td>
+                                <td>Costo</td>
                                 <td></td>
                             </tr>
                         </thead>
@@ -443,6 +397,7 @@ export default function Suppliers(){
                                         <td>{ item.kg }</td>
                                         <td>{ item.fecha }</td>
                                         <td>{ suppliers ? suppliers.filter( supplier => item.id_proveedor === supplier.id).map( supplier => supplier.nombre) : item.id_proveedor}</td>
+                                        <td>${ item.costo }</td>
                                         <td><Button className="bg-red" onClick={ () => openDeleteModal(item) }><FontAwesomeIcon icon={faTimes} /> Eliminar</Button> </td>
                                     </tr>
                                 })
@@ -473,6 +428,12 @@ export default function Suppliers(){
 
                         select{
                             padding: 5px;
+                        }
+
+                        .error-msj{
+                            font-size: 22px;
+                            color: red;
+                            font-weight: 700;
                         }
                     `
                 }
