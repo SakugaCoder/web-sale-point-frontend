@@ -291,6 +291,7 @@ export default function Pedidos(){
 
     const printTicket = async ticket_order => {
         let res_order_detail = await getOrderDetail(ticket_order.id);
+        let adeudo_res = await SP_API(`http://localhost:3002/obtener-adeudo/${ticket_order.id_cliente}/${ticket_order.id}`, 'GET');
         ticket_order.detalle = res_order_detail;
 
         let final_ticket_data = {
@@ -299,13 +300,14 @@ export default function Pedidos(){
             cajero: localStorage.getItem('username'),
             chalan: ticket_order.chalan ? ticket_order.chalan.split(',')[0] : 'NA',
             cliente: ticket_order.id_cliente,
-            adeudo: ticket_order.adeudo,
+            adeudo: roundNumber(adeudo_res.adeudo),// ticket_order.adeudo,
             estado_nota: getOrderStatusText(ticket_order.estado),
             efectivo: null,
             productos: ticket_order.detalle
         };
 
         console.log(final_ticket_data);
+        return null;
         let res = await SP_API('http://localhost:3002/imprimir-ticket', 'POST', final_ticket_data);
         alert('Ticket impreso');
     };
@@ -544,7 +546,7 @@ export default function Pedidos(){
                         { (tableData ? 
                                 filterData().map( (item, index) => {
                                     return <tr key={index}>
-                                        <td>{ item.fecha }</td>
+                                        <td>{ item.fecha } - { item.id }</td>
                                         <td>{ item.id_cliente } - { item.nombre_cliente }</td>
                                         <td><p> { item.chalan ? `${item.chalan.split(',')[0]} - ${item.chalan.split(',')[1]}` : null } </p> </td>
                                         <td>{'$'+ item.total_pagar}</td>
