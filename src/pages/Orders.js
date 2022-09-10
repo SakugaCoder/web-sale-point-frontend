@@ -546,7 +546,7 @@ export default function Pedidos(){
                         { (tableData ? 
                                 filterData().map( (item, index) => {
                                     return <tr key={index}>
-                                        <td>{ item.fecha } - { item.id }</td>
+                                        <td>{ item.fecha }</td>
                                         <td>{ item.id_cliente } - { item.nombre_cliente }</td>
                                         <td><p> { item.chalan ? `${item.chalan.split(',')[0]} - ${item.chalan.split(',')[1]}` : null } </p> </td>
                                         <td>{'$'+ item.total_pagar}</td>
