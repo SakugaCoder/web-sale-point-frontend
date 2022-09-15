@@ -200,7 +200,7 @@ export default function Inventory(){
                     <Keypad currentNumber={currentNumber} setCurrentNumber={setCurrentNumber} />
 
                     <div className="modal-buttons" style={ {marginTop: 20} }>
-                        <Button type='submit' className="bg-red" >Si, realizar merma</Button>
+                        <Button type='submit' className="bg-red" >Confirmar</Button>
                         <Button type='button' onClick={ () => { handleModalClose(); setCurrentNumber('') } }>Cancelar</Button>
                     </div>
                 </form>

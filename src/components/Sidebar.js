@@ -26,10 +26,11 @@ const SidebarContainer = styled.div`
 `;
 
 const SidebarLogo = styled.div`
-    font-size: 2rem;
+    font-size: 1.5rem;
     letter-spacing: 1rem;
     text-align: center;
     margin-bottom: 40px;
+    font-weight: 400;
     &:hover{
         cursor: pointer;
     }
@@ -76,8 +77,8 @@ export default function Sidebar(props){
             admin: false
         },
         {
-            name: 'Pedidos',
-            href: '/pedidos',
+            name: 'Notas',
+            href: '/notas',
             icon: faClipboardCheck,
             submenu: false,
             admin: false
@@ -163,7 +164,7 @@ export default function Sidebar(props){
     return(
         <SidebarContainer>
             <SidebarLogo  onClick={ toggleOptionsMenu }>
-                PVOL
+                { localStorage.getItem('username').toUpperCase() }
                 { optionVisible ?
                 <UserOptions className="hidden">
                     <ul>

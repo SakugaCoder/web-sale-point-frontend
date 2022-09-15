@@ -15,8 +15,7 @@ import { getItems, insertItem, SP_API } from "../../utils/SP_APPI";
 import { getTotal, roundNumber } from "../../utils/Operations";
 
 const MainContainer = styled.div`
-    margin: 20px;
-    heigth: 100vh;
+    margin: 20px 20px 5px 20px;
 `;
 
 const Header = styled.header` 
@@ -132,7 +131,7 @@ const ProductList = styled.div`
     grid-row-gap: 10px;
     max-width: 100%;
     margin-top: 20px;
-    max-height: 60vh;
+    height: 100%;
     overflow-y: scroll;
 `;
 
@@ -254,6 +253,7 @@ export default function Main(){
     const [ cashRegister, setCashRegister ] = useState(null);
     const [ paymentError, setPaymentError ]  = useState('');
     const [ errorBascula, setErrorBascula ] = useState(null);
+    const [ errorMsj, setErrorMsj ] = useState('');
     let counter = 0;
 
     const selectClientRef = useRef(null);
@@ -437,14 +437,18 @@ export default function Main(){
     };
 
     const addProductToBasket = (evt, item_data) => {
+        setErrorMsj('');
         evt.preventDefault();
         let kg = Number(evt.target.kg.value);
+        console.log(kg);
         if(kg > 0){
             item_data.kg = kg;
         }
 
         else{
-            item_data.kg = currentNumber;
+            setErrorMsj('Error. Favor de introducir una cantidad valida.');
+            // item_data.kg = currentNumber;
+            return null;
         }
 
         console.log(item_data.kg);
@@ -699,12 +703,15 @@ export default function Main(){
             </Modal>
 
             {/* Product card modal */}
-            <Modal title='Product card modal' visible={ productModalState.visible }  handleModalClose={  () => { handleProductModalClose(); setCurrentNumber(''); clearInterval(kgInterval); } } >
+            <Modal title='Product card modal' visible={ productModalState.visible }  handleModalClose={  () => { handleProductModalClose(); setCurrentNumber(''); setErrorMsj('');clearInterval(kgInterval); } } >
                 { currentProduct ? 
                     <ProductCardModal>
                         <img src={currentProduct.img }/>
 
+                        <p style={ {fontSize: 26} }>{ currentProduct.name }</p>
                         <strong style={ {fontSize: 36} }>$ { currentProduct.price } x pza</strong>
+
+                        <p style={ {fontSize: 26, color: 'red'} }>{ errorMsj }</p>
 
                         <ModalForm onSubmit={ event => { addProductToBasket(event, currentProduct); }}>
                             { /* <Input placeholder='Cantidad en kg' label='Cantidad en kilogramos' name='kg' required/> */}
@@ -716,10 +723,10 @@ export default function Main(){
 
                             <PaymentAmount style={ {marginTop:5, marginBottom: 5}}>Total: ${ currentNumber ? currentNumber*currentProduct.price : '0'}</PaymentAmount>
                             <PaymentAmount style={ {marginTop:5}}>Piezas: { currentNumber ? currentNumber : '0'}</PaymentAmount>
-                            <Keypad currentNumber={currentNumber} setCurrentNumber={setCurrentNumber} />
+                            <Keypad currentNumber={currentNumber} setCurrentNumber={ (val) => { setCurrentNumber(val); setErrorMsj('') }} />
 
                             <ModalButtons>
-                                    <Button type='button' className="bg-red" onClick={ () => { handleProductModalClose(); setCurrentNumber(''); } }>Cancelar</Button>
+                                    <Button type='button' className="bg-red" onClick={ () => { handleProductModalClose(); setCurrentNumber(''); setErrorMsj('') } }>Cancelar</Button>
                                     {/* <Button className="bg-blue ml" type='button' onClick={ () => { setFinalKg(finalKg+currentKg)} }>Agregar peso</Button> */}
                                     <Button type='submit' className="ml bg-primary">Guardar</Button>
                             </ModalButtons>

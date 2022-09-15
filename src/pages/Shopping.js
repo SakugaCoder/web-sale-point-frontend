@@ -65,11 +65,13 @@ export default function Suppliers(){
     const [ errorMsj, setErrorMsj ] = useState('');
     const [filters, setFilters] = useState({fecha: null, proveedor: null, producto: null});
     const [ currentDate, setCurrentDate ] = useState('');
+    const [ estadoCaja, setEstadoCaja ] = useState(null);
 
     const fields = ['Producto', 'Kg','Fecha', 'Proveedor', 'Eliminar'];
     
     const initialFunction = async () => {
         let res = await getItems('Compras');
+        let res_caja = await getItems('estado-caja');
         if(res.err !== true){
             setTableData(res.map( item => {
                 return {
@@ -86,6 +88,8 @@ export default function Suppliers(){
             }));
             console.log(res);
         }
+
+        setEstadoCaja(res_caja);
 
         let res_products = await getItems('Productos');
         setProducts(res_products);
@@ -345,10 +349,13 @@ export default function Suppliers(){
 
                         <StyledInput type='text' placeholder='Costo' label='Costo' name='costo' required maxWidth='300px'/>
 
-                        <label>
-                            <p>Agregar como retiro</p>
-                            <input type={'checkbox'} name="es_retiro" style={ {width: 30, height: 30, border: 'solid 2px #000'} } />
-                        </label>
+                        
+                            
+                            <label style={ {display: estadoCaja ? (estadoCaja.caja.estado === 'abierta' ? 'block' : 'none') : 'none' } }>
+                                <p>Agregar como retiro</p>
+                                <input type={'checkbox'} name="es_retiro" style={ {width: 30, height: 30, border: 'solid 2px #000'} } />
+                            </label>
+
                     </div>
                     <p className="error-msj">{ errorMsj }</p>
 

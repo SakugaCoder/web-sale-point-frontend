@@ -66,7 +66,7 @@ export default function Ticket(props){
 
             <TicketButtons>
                 <TicketButton className="bg-primary" onClick={ props.payOrder }>COBRAR</TicketButton>
-                { props.restrictedMode ? null : <TicketButton className="bg-blue" onClick={ () => props.openPaymentModal(true) }>FIAR PEDIDO</TicketButton> }
+                { props.restrictedMode ? null : <TicketButton className="bg-blue" onClick={ () => props.openPaymentModal(true) }>FIAR NOTA</TicketButton> }
                 <TicketButton className="bg-red" onClick={ props.cancelOrder }>CANCELAR</TicketButton>
             </TicketButtons>
         </TicketContainer>

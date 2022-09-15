@@ -59,6 +59,7 @@ const StyledTable = styled.table`
 export default function Chalanes(){
     const [tableData, setTableData] = useState(null);
     const { modalState, setModalState, handleModalClose } = useModal();
+    const [ errorMsj, setErrorMsj ] = useState('');
 
     const fields = ['Nombre', 'Telefono','Eliminar', 'Modificar'];
 
@@ -79,15 +80,25 @@ export default function Chalanes(){
             telefono: evt.target.telefono.value,
         };
 
-        let res = await insertItem('chalan', data);
-        if(res.err === false){
-            evt.target.reset(); 
-            initialFunction();   
+        setErrorMsj('');
+        if(evt.target.nombre.value && evt.target.telefono.value){
+            console.log('Creando chalan');
+            let res = await insertItem('chalan', data);
+            if(res.err === false){
+                evt.target.reset(); 
+                initialFunction();   
+            }
+    
+            else{
+                setErrorMsj('Error al actualizar chalan');
+            }
+        }
+        else{
+            console.log('Error campos incompletos');
+            setErrorMsj('Error. Favor de completar todos los campos.');
         }
 
-        else{
-            alert('Error al actualizar chalan');
-        }
+
     };
     
     const openEditModal = data => {
@@ -185,7 +196,7 @@ export default function Chalanes(){
 
                     <StyledInput type='text' placeholder='Nombre' label='Nombre' name='nombre' required/>
                     <StyledInput type='text' placeholder='Teléfono' label='Teléfono' name='telefono'/>
-
+                    <p style={ {color: 'red'} }>{ errorMsj }</p>
                     <ButtonGroup>
                         <ControlButton type='submit' className="bg-primary">GUARDAR</ControlButton>
                         <ControlButton type='reset' className="bg-red" >CANCELAR</ControlButton>

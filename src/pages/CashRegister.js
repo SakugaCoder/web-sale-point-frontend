@@ -82,6 +82,7 @@ export default function Suppliers(){
     const { modalState, setModalState, handleModalClose } = useModal();
     const { modalState: withdrawModalState, setModalState: setWithdrawModalState, handleModalClose: handleWithdrawModalClose } = useModal();
     const { modalState: cajaModalState, setModalState: setCajaModalState, handleModalClose: handleCajaModalClose } = useModal();
+    const { modalState: productosModalState, setModalState: setProductosModalState, handleModalClose: handleProductosModalClose } = useModal();
 
     const [ currentNumber, setCurrentNumber ] = useState('');
     const [ cashRegisterRecords, setCashRegisterRecords ]  = useState(null);
@@ -90,6 +91,7 @@ export default function Suppliers(){
     const [ errorMsj, setErrorMsj] = useState('');
     const [ detalleCaja, setDetalleCaja ] = useState(null);
     const [ currentDetalleCaja, setCurrentDetalleCaja ] = useState(null);
+    const [ sumatoria, setSumatoria ] = useState(null);
 
 
     const fields = ['Nombre', 'Eliminar', 'Modificar'];
@@ -262,11 +264,53 @@ export default function Suppliers(){
 
     const obtenerDetalleCaja = async date => {
         let res_retiros = await getItems('retiros/'+date);
-        let res_pedidos = await getItems('pedidos/'+date);
-        if(res_retiros.error === false && res_pedidos.error === false){
-            console.log(res_retiros, res_pedidos);
-            setDetalleCaja({retiros: res_retiros.retiros, pedidos: res_pedidos.pedidos});
+        if(res_retiros.error === false){
+            setDetalleCaja({retiros: res_retiros.retiros});
         }
+    }
+
+    const obtenerSumatoriaProductos = async date => {
+        console.log('Obteniendo detalle sumatoria');
+        let res_sumatoria = await getItems('sumatoria-productos/'+date);
+        if(res_sumatoria.error === false){
+            console.log(res_sumatoria);
+            setSumatoria(res_sumatoria);
+        }
+    }
+
+    const modalSumatoriaProductos = item => {
+        return                 <div className="product-card-modal">
+        <p style={ {fontSize: 18} }>Detalle de retiros de caja del dia <strong style={ {fontSize: 16}}>{ item.fecha }</strong></p>
+        { sumatoria ? 
+        <div style={ { display: 'flex', flexDirection: 'column', alignItems: 'flex-start'} }>
+
+            <h3 style={ {marginTop: 5, fontSize: 24, marginBottom: 5} }>RETIROS</h3>
+            <div style={ { overflowX: 'auto', display: 'flex', marginBottom: 20}}>
+                <StyledTable>
+                    <thead>
+                        <tr>
+                            <td>Producto</td>
+                            <td>Cantidad Kg</td>
+                            <td>Total</td>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                    { sumatoria ? 
+                            sumatoria.map( (item, index) => {
+                            return <tr key={index}>
+                                <td>{ item.nombre }</td>
+                                <td>${ item.sumatoria }</td>
+                                <td>{ item.precio }</td>
+                            </tr>
+                        })
+                    : null }
+                    </tbody>
+                </StyledTable>
+            </div>
+        </div>
+        : null }
+        </div>
     }
 
     const confirmationModal = (_date) => {
@@ -292,6 +336,13 @@ export default function Suppliers(){
         obtenerDetalleCaja(item.fecha);
         setCurrentDetalleCaja(item);
         console.log(item);
+    }
+
+    const openProductDetailModal = item => {
+        console.log('abrir detalle venta');
+        obtenerSumatoriaProductos(item.fecha);
+        setProductosModalState({visible: true});
+        setCurrentDetalleCaja(item);
     }
 
     const openConfirmationModal = data => {
@@ -327,8 +378,6 @@ export default function Suppliers(){
                     { cashRegisterStatus ? cashRegisterStatus.caja.estado === 'abierta' ? 
                 <> 
                         <ButtonGroupTop>
-                            <Button type='submit' className="bg-red" onClick={ openConfirmationModal } >CERRAR CAJA</Button>
-
                             { cashRegisterStatus ? cashRegisterStatus.caja.estado === 'abierta' ? 
                                 <Button className='bg-primary' onClick={ () => setWithdrawModalState({...withdrawModalState, visible: true}) }>REALIZAR RETIRO</Button>
                             : null : null }
@@ -370,6 +419,7 @@ export default function Suppliers(){
                                     <td>Ingresos</td>
                                     <td>Retiros</td>
                                     <td>Total</td>
+                                    <td>Cajero</td>
                                     <td>Acciones</td>
                                 </tr>
                             </thead>
@@ -389,7 +439,8 @@ export default function Suppliers(){
                                         <td>${ item.estado === 'abierta' ? roundNumber(item.SumaIngresos): item.ingresos}</td>
                                         <td>${ item.estado === 'abierta' ? roundNumber(item.SumaRetiros) : item.retiros}</td>
                                         <td>${ item.estado === 'abierta' ? roundNumber( (item.fondo + item.SumaIngresos) - item.SumaRetiros): item.total }</td>
-                                        <td style={ {display: 'flex'} }><Button className="bg-blue" onClick={ () => openDetailModal(item) }>Detalle</Button> { item.estado === 'abierta' ? <Button className="bg-red" ml onClick={ () => openSingleCashRegisterModal(item.fecha, roundNumber( (item.fondo + item.SumaIngresos) - item.SumaRetiros), roundNumber(item.SumaRetiros), roundNumber(item.SumaIngresos))}>Cerrar caja</Button> : null}</td>
+                                        <td>{ item.cajero }</td>
+                                        <td style={ {display: 'flex'} }><Button className="bg-blue" onClick={ () => openDetailModal(item) }>Detalle Retiros</Button> <Button className="bg-light-blue" onClick={ () => openProductDetailModal(item) } ml>Detalle venta</Button> { item.estado === 'abierta' && localStorage.getItem('sp_rol') === '1' ? <Button className="bg-red" ml onClick={ () => openSingleCashRegisterModal(item.fecha, roundNumber( (item.fondo + item.SumaIngresos) - item.SumaRetiros), roundNumber(item.SumaRetiros), roundNumber(item.SumaIngresos))}>Cerrar caja</Button> : null}</td>
                                     </tr>
                                 })
                             : null}
@@ -397,7 +448,7 @@ export default function Suppliers(){
                         </StyledTable>
                     </div>
 
-                    <h2>LISTA DE RETIROS</h2>
+                    {/* <h2>LISTA DE RETIROS</h2>
 
                     <div style={ { overflowX: 'auto', display: 'flex'}}>
                         <StyledTable>
@@ -421,7 +472,9 @@ export default function Suppliers(){
                             : null}
                             </tbody>
                         </StyledTable>
-                    </div>
+                    </div> */}
+
+                    
                 </>
                 : null : null }
 
@@ -445,18 +498,57 @@ export default function Suppliers(){
                 { modalState.content }
             </Modal>
 
+
+            <Modal title='Mi titulo' visible={ productosModalState.visible }  handleModalClose={ () => { handleProductosModalClose(); setSumatoria(null); setCurrentDetalleCaja(null);  } } >
+                <div className="product-card-modal">
+                { currentDetalleCaja ? 
+                <>
+                <p style={ {fontSize: 18} }>Detalle de ventas del dia <strong style={ {fontSize: 16}}>{ currentDetalleCaja.fecha }</strong></p>
+                    { sumatoria ? 
+                    <div style={ { display: 'flex', flexDirection: 'column', alignItems: 'flex-start'} }>
+
+                        <h3 style={ {marginTop: 5, fontSize: 24, marginBottom: 5} }>VENTAS</h3>
+                        <div style={ { overflowX: 'auto', display: 'flex', marginBottom: 20}}>
+                            <StyledTable>
+                                <thead>
+                                    <tr>
+                                        <td>Producto</td>
+                                        <td>Kg</td>
+                                        <td>Total</td>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                { sumatoria ? 
+                                        sumatoria.sumatorias.map( (item, index) => {
+                                        return <tr key={index}>
+                                            <td>{ item.nombre }</td>
+                                            <td>{ item.Sumatoria } kg</td>
+                                            <td>${ roundNumber(item.precio  * item.Sumatoria) }</td>
+                                        </tr>
+                                    })
+                                : null }
+                                </tbody>
+                            </StyledTable>
+                        </div>
+                    </div>
+                    : null }
+
+                    </>
+                    : null }
+
+                    <Button className="bg-red" style={ { display: 'block', margin: 'auto'} } type='button' onClick={ () => { handleProductosModalClose();  setSumatoria(null); setCurrentDetalleCaja(null); } }>CERRA VENTANA</Button>
+                </div>
+            </Modal>
+
             <Modal title='Detalle caja' visible={ cajaModalState.visible }  handleModalClose={ () => { handleCajaModalClose();  } } >
                 <div className="product-card-modal">
-                <p style={ {fontSize: 18} }>Detalle cierre de caja del dia <strong style={ {fontSize: 16}}>{ currentDetalleCaja ? currentDetalleCaja.fecha : null}</strong></p>
+                <p style={ {fontSize: 18} }>Detalle de retiros de caja del dia <strong style={ {fontSize: 16}}>{ currentDetalleCaja ? currentDetalleCaja.fecha : null}</strong></p>
                 { detalleCaja ? 
                 <div style={ { display: 'flex', flexDirection: 'column', alignItems: 'flex-start'} }>
-                    <div style={ {display: 'flex', alignItems: 'center', marginBottom: -20} }>
-                        <h3 style={ {fontSize: 22} }>FECHA: </h3><p style={ {fontSize: 26, marginLeft: 10} }>{ currentDetalleCaja ? currentDetalleCaja.fecha : null} </p>
-                        <h3 style={ {fontSize: 22, marginLeft: 20} }>CAJERO: </h3><p style={ {fontSize: 26, marginLeft: 10} }> { currentDetalleCaja ? currentDetalleCaja.cajero : null} </p>
-                    </div>
 
                     <h3 style={ {marginTop: 5, fontSize: 24, marginBottom: 5} }>RETIROS</h3>
-                    <div style={ { overflowX: 'auto', display: 'flex'}}>
+                    <div style={ { overflowX: 'auto', display: 'flex', marginBottom: 20}}>
                         <StyledTable>
                             <thead>
                                 <tr>
@@ -476,35 +568,6 @@ export default function Suppliers(){
                                     </tr>
                                 })
                             : null }
-                            </tbody>
-                        </StyledTable>
-                    </div>
-
-                    <h3 style={ {fontSize: 24, marginBottom: 5} }>PEDIDOS</h3>
-                    <div style={ { overflowX: 'auto', display: 'flex', marginBottom: 20}}>
-                        <StyledTable>
-                            <thead>
-                                <tr>
-                                    <td>Fecha</td>
-                                    <td>Cliente</td>
-                                    <td>Chalan</td>
-                                    <td>Total</td>
-                                    <td>Productos</td>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                            { ( detalleCaja.pedidos ? 
-                                    detalleCaja.pedidos.map( (item, index) => {
-                                        return <tr key={index}>
-                                            <td>{ item.fecha }</td>
-                                            <td>{ item.id_cliente } - { item.nombre_cliente }</td>
-                                            <td><p> { item.chalan ? `${item.chalan.split(',')[0]} - ${item.chalan.split(',')[1]}` : null } </p> </td>
-                                            <td>{'$'+ item.total_pagar}</td>
-                                            <td  style={ {maxWidth: 400} }>{ item.productos }</td>
-                                        </tr> 
-                                    })
-                                : null ) }
                             </tbody>
                         </StyledTable>
                     </div>

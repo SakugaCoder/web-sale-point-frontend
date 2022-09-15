@@ -3,14 +3,12 @@ import styled from "styled-components";
 
 import Button from "../components/Button";
 
-import { useState, useEffect, useMemo} from 'react';
+import { useState, useEffect} from 'react';
 import { getItems, SP_API } from "../utils/SP_APPI";
 import Modal from "../components/Modal/Modal";
 import useModal from "../hooks/useModal";
 import Keypad from "../components/Keypad";
-import NormalButton from "../components/Button";
 
-import { useTable, useSortBy } from "react-table";
 import { roundNumber } from "../utils/Operations";
 
 const Container = styled.div`
@@ -177,15 +175,18 @@ export default function Pedidos(){
     const { modalState: paymentModalState, setModalState: setPaymentModalState, handleModalClose: handlePaymentModalClose } = useModal();
     const [ currentNumber, setCurrentNumber ] = useState('');
     const [ currentOrder, setCurrentOrder] = useState(null);
+    const [ errorMsj, setErrorMsj ] = useState('');
+    const [ estadoCaja, setEstadoCaja ] = useState(null);
 
     const initialFunction = async () => {
         let res = await getItems('pedidos');
-        console.log(res);
-
         let res_chalanes = await getItems('chalanes');
         let res_clientes = await getItems('clientes');
-        console.log(res_chalanes);
+        let res_caja = await getItems('estado-caja');
 
+        console.log(res_caja);
+
+        setEstadoCaja(res_caja);
         setChalanes(res_chalanes);
         setTableData(res);
         setOrders(res); 
@@ -229,14 +230,16 @@ export default function Pedidos(){
         }
     };
 
-
     const payOrderPCE = async evt => {
         evt.preventDefault();
         setCurrentNumber('');
+        setErrorMsj('');
         if(evt.target.contra_entrega.value !== '0'){
+            console.log('Contra entrega');
             let order = {
                 order_id: evt.target.order_id.value,
                 chalan: evt.target.contra_entrega.value,
+                cajero: localStorage.getItem('username')
             }
     
             let res = await SP_API('http://localhost:3002/pce-pedido', 'POST', order); 
@@ -248,8 +251,15 @@ export default function Pedidos(){
         }
 
         else{
-            payOrder({total_pagar: evt.target.total_pagar.value, id: evt.target.order_id.value});
-            handlePaymentModalClose();
+            console.log('Fiado')
+            if(currentNumber){
+                if(Number(currentNumber) > 0){
+                    payOrder({total_pagar: evt.target.total_pagar.value, id: evt.target.order_id.value});
+                    handlePaymentModalClose();
+                    return null;
+                }
+            }
+            setErrorMsj('Error. Favor de ingresar una cantidad correcta.');
         }
     };
 
@@ -291,7 +301,7 @@ export default function Pedidos(){
 
     const printTicket = async ticket_order => {
         let res_order_detail = await getOrderDetail(ticket_order.id);
-        let adeudo_res = await SP_API(`http://localhost:3002/obtener-adeudo/${ticket_order.id_cliente}/${ticket_order.id}`, 'GET');
+        // let adeudo_res = await SP_API(`http://localhost:3002/obtener-adeudo/${ticket_order.id_cliente}/${ticket_order.id}`, 'GET');
         ticket_order.detalle = res_order_detail;
 
         let final_ticket_data = {
@@ -300,14 +310,13 @@ export default function Pedidos(){
             cajero: localStorage.getItem('username'),
             chalan: ticket_order.chalan ? ticket_order.chalan.split(',')[0] : 'NA',
             cliente: ticket_order.id_cliente,
-            adeudo: roundNumber(adeudo_res.adeudo),// ticket_order.adeudo,
+            adeudo: ticket_order.adeudo,// ticket_order.adeudo,
             estado_nota: getOrderStatusText(ticket_order.estado),
             efectivo: null,
             productos: ticket_order.detalle
         };
 
         console.log(final_ticket_data);
-        return null;
         let res = await SP_API('http://localhost:3002/imprimir-ticket', 'POST', final_ticket_data);
         alert('Ticket impreso');
     };
@@ -348,7 +357,7 @@ export default function Pedidos(){
     const detailModal = order => {
         return <div className="product-card-modal">
 
-        <p style={ {fontSize: 20} }>Detalle pedido de <strong>{ order.nombre_cliente}</strong></p>
+        <p style={ {fontSize: 20} }>Detalle nota de <strong>{ order.nombre_cliente}</strong></p>
 
         <OrderDetailContainer>
             <OrderDetail>
@@ -378,98 +387,10 @@ export default function Pedidos(){
     </div>
     };
 
-    const filterOrders = (evt, filter) => {
-        // console.log(orden);
-        if(filter === 'estado'){
-            let orden = Number(evt.target.value);
-            if(orden === 0){
-                setTableData(orders);
-            }
-    
-            else{
-                setTableData(orders.filter(order => order.estado === orden));
-            }
-        }
-
-        else if(filter === 'chalan'){
-            let chalan = evt.target.value;
-            if(chalan === '0'){
-                setTableData(orders);
-            }
-            else{
-                setTableData(orders.filter(order => order.chalan === chalan));
-            }
-        }
-    }
 
     useEffect( () => {
         initialFunction();
     }, []);
-
-    function Table({ columns, data }) {
-        const {
-          getTableProps,
-          getTableBodyProps,
-          headerGroups,
-          rows,
-          prepareRow,
-        } = useTable(
-          {
-            columns,
-            data,
-          },
-          useSortBy
-        )
-      
-        // We don't want to render all 2000 rows for this example, so cap
-        // it at 20 for this use case
-        // const firstPageRows = rows.slice(0, 20)
-      
-        return (
-          <>
-            <StyledTable {...getTableProps()}>
-              <thead>
-                {headerGroups.map(headerGroup => (
-                  <tr {...headerGroup.getHeaderGroupProps()}>
-                    {headerGroup.headers.map(column => (
-                      // Add the sorting props to control sorting. For this example
-                      // we can add them into the header props
-                      <th {...column.getHeaderProps(column.getSortByToggleProps())}>
-                        {column.render('Header')}
-                        {/* Add a sort direction indicator */}
-                        <span>
-                          {column.isSorted
-                            ? column.isSortedDesc
-                              ? ' 🔽'
-                              : ' 🔼'
-                            : ''}
-                        </span>
-                      </th>
-                    ))}
-                  </tr>
-                ))}
-              </thead>
-              <tbody {...getTableBodyProps()}>
-                {rows.map(
-                  (row, i) => {
-                    prepareRow(row);
-                    return (
-                      <tr {...row.getRowProps()}>
-                        {row.cells.map(cell => {
-                          return (
-                            <td {...cell.getCellProps()}>{cell.render('Cell')}</td>
-                          )
-                        })}
-                      </tr>
-                    )}
-                )}
-              </tbody>
-            </StyledTable>
-            <br />
-          </>
-        );
-    };
-
 
     function filterData(){
         return tableData.filter( item => {
@@ -503,20 +424,19 @@ export default function Pedidos(){
     }
 
     return(
-        <Layout active='Pedidos'>
+        <Layout active='Notas'>
             <Container>
                 <div style={ {display: 'flex', justifyContent: 'space-between'} }>
-                    <h2>LISTA DE PEDIDOS</h2>
+                    <h2>LISTA DE NOTAS</h2>
                     <Button className='bg-red' onClick={ () => window.location.reload() }>REINICIAR FILTROS</Button>
                 </div>
                 <div style={ { overflowX: 'auto', marginTop: 20}}>
-                    { filters.chalan !== '0' && filters.chalan && filters.estado === 4 ? <p style={ {fontSize: 20} }>Total PCE chalan <strong>{filters.chalan.split(',')[1]}</strong> = <strong>${ roundNumber((filterData().map( item => item.total_pagar)).reduce( (anterior, actual) => anterior + actual, 0)) }</strong> </p> : null}
+                    { filters.chalan !== '0' && filters.chalan ? <p style={ {fontSize: 20} }>Total PCE chalan <strong>{filters.chalan.split(',')[1]}</strong> = <strong>${ roundNumber((filterData().filter( item => item.estado === 4).map( item => item.total_pagar)).reduce( (anterior, actual) => anterior + actual, 0)) }</strong> </p> : null}
                     {/*  tableData ? <TableWraper data={tableData} openEditModal={ openEditModal } openFiarModal={openFiarModal} /> : null  */} 
                     <StyledTable style={{ border: 'solid 1px #000' }}>
 
                         <thead style={ {backgroundColor: '#26C485'} }>
                             <tr>
-
                                 <td><input type={'date'} style={ {padding: 10, fontSize: '16px'} } onChange={ (event) => setFilters({...filters, fecha: event.target.value }) }/> </td>
                                 <td><select name="cliente" style={ {padding: 10, fontSize: '16px'} } onChange={ (event) => setFilters({...filters, cliente: event.target.value }) } >
                                         <option value='0'>Cliente</option>
@@ -538,12 +458,11 @@ export default function Pedidos(){
                                     </select>
                                 </td>
                                 <td>Acciones</td>
-
                             </tr>
                         </thead>
                         
                         <tbody>
-                        { (tableData ? 
+                        { (tableData && estadoCaja ? 
                                 filterData().map( (item, index) => {
                                     return <tr key={index}>
                                         <td>{ item.fecha }</td>
@@ -554,7 +473,7 @@ export default function Pedidos(){
                                         <td><div style={ {display: 'flex', flexWrap: 'nowrap'} }>
                         <ActionButton className="bg-primary" medium onClick={ () => openDetailModal(item) }>Detalle</ActionButton>
                         <ActionButton className="bg-light-blue" ml medium onClick={ () => printTicket(item) }>Ticket</ActionButton>
-                        { item.estado === 2 || item.estado === 3 ? <ActionButton className="bg-blue" medium ml onClick={ () => { setPaymentModalState({visible: true}); setCurrentOrder(item)  } }>Cobrar</ActionButton> : (item.estado === 4 ? <><ActionButton className="bg-blue" onClick={ () => openEditModal(item) } medium ml>Recibir pago</ActionButton><ActionButton className="bg-red"  onClick={ () => openFiarModal(item) } medium ml>Fiar </ActionButton></>: null) }
+                        { estadoCaja.caja.estado === 'abierta' ? (item.estado === 2 || item.estado === 3 ? <ActionButton className="bg-blue" medium ml onClick={ () => { setPaymentModalState({visible: true}); setCurrentOrder(item)  } }>Cobrar</ActionButton> : (item.estado === 4 ? <><ActionButton className="bg-blue" onClick={ () => openEditModal(item) } medium ml>Recibir pago</ActionButton><ActionButton className="bg-red"  onClick={ () => openFiarModal(item) } medium ml>Fiar </ActionButton></>: null)) : null}
                     </div></td>
                                     </tr> 
                                 })
@@ -574,6 +493,7 @@ export default function Pedidos(){
                     <Total>Total a pagar: <strong>$ { currentOrder ? currentOrder.total_pagar : 0} </strong></Total>
                     <Change>Cambio: <strong> $ { currentOrder ? ((Number(currentNumber) - currentOrder.total_pagar ) > 0 ? (Number(currentNumber) - currentOrder.total_pagar ) : 0).toFixed(2) : 0} </strong></Change>
                     <PaymentAmount>${ currentNumber ? currentNumber : '0'}</PaymentAmount>
+                    <p style={ {fontSize: 26, color: 'red', textAlign: 'center'} }>{ errorMsj } </p>
                     <input type='hidden' value={currentNumber ? currentNumber : '0'} name='pago'/>
                     <input type='hidden' name='order_id' value={currentOrder ? currentOrder.id : null} />
                     <input type='hidden' name='total_pagar' value={currentOrder ? currentOrder.total_pagar : null} />

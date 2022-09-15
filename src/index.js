@@ -21,7 +21,7 @@ ReactDOM.render(
   <BrowserRouter>
     <Routes>
         <Route path="/inicio" element={ <Main />} />
-        <Route path="/pedidos" element={ <Orders />} />
+        <Route path="/notas" element={ <Orders />} />
         <Route path="/productos" element={ <Products />} />
         <Route path="/envios" element={ <Shipments />} />
         <Route path="/clientes" element={ <Clients />} />

@@ -120,33 +120,27 @@ export default function Suppliers(){
     const changePassword = async evt => {
         evt.preventDefault();
         setErrorMsj('');
-        if(evt.target.pass.value && evt.target.pass_confirmation.value){
+        if(evt.target.pass.value){
             console.log('pass filled')
-            if(evt.target.pass.value === evt.target.pass_confirmation.value){
-                let data = {
-                    user_id: evt.target.user_id.value,
-                    pass: evt.target.pass.value
-                };
-                
-                handleModalClose();
-        
-                let res = await SP_API('http://localhost:3002/cambiar-password-usuario', 'post', data);
-                if(res.err === false){
-                    initialFunction();    
-                }
-        
-                else{
-                    alert('Error al editar usuario');
-                }
+            let data = {
+                user_id: evt.target.user_id.value,
+                pass: evt.target.pass.value
+            };
+            
+            handleModalClose();
+    
+            let res = await SP_API('http://localhost:3002/cambiar-password-usuario', 'post', data);
+            if(res.err === false){
+                initialFunction();    
             }
-
+    
             else{
-                // setErrorMsj('Error. Contraseñas no coinciden');    
-                console.log('pass not match')
+                alert('Error al editar usuario');
             }
         }
 
         else{
+            // setErrorMsj('Error. Favor de ingresar nueva contraseña.');
             console.log('error pass not filled');
             // setErrorMsj('Error. Contraseñas no coinciden');
         }
@@ -183,11 +177,7 @@ export default function Suppliers(){
         <form className="modal-form" onSubmit={ changePassword }>
             <input type='hidden' name='user_id' required defaultValue={item_data.id} /> 
             <Input placeholder='Nueva contraseña' label='Nueva contraseña' name='pass' /> 
-            <Input placeholder='Confirmar contraseña' label='Confirmar contraseña' name='pass_confirmation' /> 
-
             
-            { errorMsj ? <p style={ {color: '#ff0000'} } > {errorMsj} </p>: null}
-
             <div className="modal-buttons">
                 <Button className="bg-red" type='submit'>Cambiar contraseña</Button>
                 <Button className="bg-white" onClick={ handleModalClose }>Cancelar</Button>

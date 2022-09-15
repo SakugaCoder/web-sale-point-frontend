@@ -77,6 +77,8 @@ export default function Productos(){
     const { modalState, setModalState, handleModalClose } = useModal();
     const { modalState: pictureModalState, setModalState: setPictureModalState, handleModalClose: handlePictureModalClose } = useModal();
     const { modalState: priceModalState, setModalState: setPriceModalState, handleModalClose: handlePriceModalClose } = useModal();
+    
+    const [ errorMsj, setErrorMsj ] = useState('');
 
     const userImgRef = useRef();
     const fileTypes = ['image/png', 'image/jpg', 'image/jpeg'];
@@ -197,6 +199,20 @@ export default function Productos(){
     </div>
     };
 
+
+    const validateProduct = evt =>{
+        evt.preventDefault();
+        setErrorMsj('');
+        if(evt.target.nombre.value && evt.target.precio.value){
+            evt.target.action="http://localhost:3002/nuevo-producto";
+            evt.target.method="post";
+            evt.target.submit();
+        }
+        else{
+            setErrorMsj('Error. Favor de completar todos los campos.');
+        }
+    }
+
     useEffect( () => {
         initialFunction();
     }, []);
@@ -206,7 +222,7 @@ export default function Productos(){
             <Container>
                 <h2>NUEVO PRODUCTO</h2>
 
-                <form action="http://localhost:3002/nuevo-producto" method="post" encType="multipart/form-data" style={ {fontSize: 26} }>
+                <form onSubmit={ validateProduct } encType="multipart/form-data" style={ {fontSize: 26} }>
 
                     <Button type="button" onClick={ () => setPictureModalState({...pictureModalState, visible: true})} className="bg-blue"><FontAwesomeIcon icon={ faPlus } size={'lg'} /> Agregar foto</Button>
                     <Modal title='' visible={ pictureModalState.visible }  handleModalClose={  handlePictureModalClose } >
@@ -227,6 +243,9 @@ export default function Productos(){
                             <option value='pza'>pza</option>
                         </select>
                     </label>
+                    
+                    <p style={ {color: 'red'} }>{ errorMsj }</p>
+                    
                     <ButtonGroup>
                         <ControlButton type='submit' className="bg-primary">GUARDAR</ControlButton>
                         <ControlButton type='reset' className="bg-red" >CANCELAR</ControlButton>

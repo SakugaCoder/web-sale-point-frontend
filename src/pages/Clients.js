@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes, faPen } from "@fortawesome/free-solid-svg-icons";
 import Input, { InputFile } from "../components/Input/Input";
 import Button from "../components/Button";
+import { SP_API } from "../utils/SP_APPI";
 
 import { useState, useRef, useEffect} from 'react';
 import { getItems, updateItem, deleteItem, insertItem } from "../utils/SP_APPI";
@@ -59,6 +60,7 @@ export default function Clientes(){
     const [filters, setFilters] = useState({id: null, nombre: null, telefono: null});
     const [username, setUsername] = useState(null);
     const [error, setError] = useState('');
+    const [ errorMsj, setErrorMsj ] = useState('');
 
     const userImgRef = useRef();
     const fileTypes = ['image/png', 'image/jpg', 'image/jpeg'];
@@ -191,22 +193,35 @@ export default function Clientes(){
     useEffect( () => {
         initialFunction();
     }, []);
-
     
-    const checkClientName = evt => {
+    const checkClientName = async evt => {
         evt.preventDefault();
-        console.log('checking name');
-        console.log(evt);
-        let username = evt.target.nombre.value;
-        let user_exist = tableData.find( client => client.nombre.toLowerCase() == username.toLowerCase());
-        if(user_exist){
-            setError('Error: Nombre del cliente ya existe, favor de agregar apellidos u otra palabra al cliente.');
+        setError('');
+        if(evt.target.nombre.value && evt.target.telefono.value){
+            let username = evt.target.nombre.value;
+            let user_exist = tableData.find( client => client.nombre.toLowerCase() === username.toLowerCase());
+            if(user_exist){
+                setError('Error: Nombre del cliente ya existe, favor de agregar apellidos u otra palabra al cliente.');
+            }
+    
+            else{
+                let client_data = {
+                    nombre: evt.target.nombre.value,
+                    telefono: evt.target.telefono.value
+                }
+        
+                let res = await SP_API('http://localhost:3002/nuevo-cliente', 'POST', client_data); 
+        
+                if(res.error === false){
+                    window.location.reload();
+                }
+                // evt.target.action="http://localhost:3002/nuevo-cliente";
+                // evt.target.method="post";
+                // evt.target.submit();
+            }
         }
-
         else{
-            evt.target.action="http://localhost:3002/nuevo-cliente";
-            evt.target.method="post";
-            evt.target.submit();
+            setError('Error. Favor de completar todos los campos.');
         }
     }
 
@@ -234,8 +249,6 @@ export default function Clientes(){
         })
     }
 
-    
-
     return(
         <Layout active='Clientes'>
             <Container>
@@ -244,6 +257,8 @@ export default function Clientes(){
                     <StyledInput type='text' placeholder='Nombre' label='Nombre' name='nombre' required/>
                     <StyledInput type='text' placeholder='Teléfono' label='Teléfono' name='telefono'/>
                     <p style={ {color: '#ff0000'} } > { error } </p>
+                    
+                    <p style={ { color: 'red'} }>{ errorMsj }</p>
                     <ButtonGroup>
                         <ControlButton type='submit' className="bg-primary">GUARDAR</ControlButton>
                         <ControlButton type='reset' onClick={ () => setError('') } className="bg-red" >CANCELAR</ControlButton>
