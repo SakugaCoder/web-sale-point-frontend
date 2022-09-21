@@ -195,7 +195,7 @@ export default function Chalanes(){
                 <form onSubmit={ createChalan } style={ {fontSize: '26px'} }>
 
                     <StyledInput type='text' placeholder='Nombre' label='Nombre' name='nombre' required/>
-                    <StyledInput type='text' placeholder='Teléfono' label='Teléfono' name='telefono'/>
+                    <StyledInput type='number' max='9999999999' placeholder='Teléfono' label='Teléfono' name='telefono'/>
                     <p style={ {color: 'red'} }>{ errorMsj }</p>
                     <ButtonGroup>
                         <ControlButton type='submit' className="bg-primary">GUARDAR</ControlButton>

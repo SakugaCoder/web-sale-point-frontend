@@ -204,9 +204,16 @@ export default function Productos(){
         evt.preventDefault();
         setErrorMsj('');
         if(evt.target.nombre.value && evt.target.precio.value){
-            evt.target.action="http://localhost:3002/nuevo-producto";
-            evt.target.method="post";
-            evt.target.submit();
+            if(evt.target.nombre.value.length <= 13){
+                evt.target.action="http://localhost:3002/nuevo-producto";
+                evt.target.method="post";
+                evt.target.submit();
+            }
+
+            else{
+                setErrorMsj('Error. El nombre del producto no debe ser mayor a 13 caracteres.');
+            }
+
         }
         else{
             setErrorMsj('Error. Favor de completar todos los campos.');
@@ -234,7 +241,7 @@ export default function Productos(){
                     </Modal>
 
                     <StyledInput type='text' placeholder='Nombre' label='Nombre' name='nombre'/>
-                    <StyledInput type='text' placeholder='Precio' label='Precio' name='precio'/>
+                    <StyledInput type='number' max='10000' placeholder='Precio' label='Precio' name='precio'/>
 
                     <label>
                         <p style={ {fontWeight: 600, marginBottom: 5} }>Venta por</p>

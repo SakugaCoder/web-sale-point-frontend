@@ -55,12 +55,12 @@ const StyledTable = styled.table`
     }
 `;
 
-export default function Suppliers(){
+export default function Users(){
     const [tableData, setTableData] = useState(null);
     const { modalState, setModalState, handleModalClose } = useModal();
     const [ errorMsj, setErrorMsj ] = useState('');
 
-    const fields = ['Nombre', 'Rol', 'Acciones'];
+    const fields = ['Id','Nombre', 'Rol', 'Acciones'];
     
     const initialFunction = async () => {
         let res = await getItems('usuarios');
@@ -72,20 +72,39 @@ export default function Suppliers(){
 
     const createUser = async evt =>{
         evt.preventDefault();
-        let data = {
-            nombre: evt.target.nombre.value,
-            rol: Number(evt.target.rol.value),
-            pswd: evt.target.pswd.value
-        };
 
-        let res = await insertItem('usuario', data);
-        if(res.err === false){
-            evt.target.reset(); 
-            initialFunction();   
+        setErrorMsj('');
+
+        if(evt.target.nombre.value.length > 0 && evt.target.pswd.value.length > 0){
+            let username = evt.target.nombre.value;
+            let user_exist = tableData.find( user => user.nombre.toLowerCase() === username.toLowerCase());
+    
+            if(user_exist){
+                setErrorMsj('Error: Nombre del usuario ya existe, favor de agregar apellidos u otra palabra.');
+            }
+    
+            else{
+    
+                let data = {
+                    nombre: evt.target.nombre.value,
+                    rol: Number(evt.target.rol.value),
+                    pswd: evt.target.pswd.value
+                };
+        
+                let res = await insertItem('usuario', data);
+                if(res.err === false){
+                    evt.target.reset(); 
+                    initialFunction();   
+                }
+        
+                else{
+                    alert('Error al actualizar usuario');
+                }
+            }
         }
 
         else{
-            alert('Error al actualizar usuario');
+            setErrorMsj('Error. Favor de completar todos los campos.');
         }
     };
     
@@ -100,11 +119,10 @@ export default function Suppliers(){
     const updateUser = async evt => {
         evt.preventDefault();
         let data = {
-            nombre: evt.target.nombre.value,
             rol: evt.target.rol.value,
             user_id: evt.target.user_id.value
         };
-        
+
         handleModalClose();
 
         let res = await updateItem('usuario', data);
@@ -114,7 +132,8 @@ export default function Suppliers(){
 
         else{
             alert('Error al actualizar usuario');
-        }
+        }   
+        
     };
 
     const changePassword = async evt => {
@@ -153,7 +172,6 @@ export default function Suppliers(){
 
         <form className="modal-form" onSubmit={ updateUser }>
             <input type='hidden' name='user_id' required defaultValue={item_data.id} /> 
-            <Input placeholder='Nombre' label='Nombre' name='nombre' required defaultValue={item_data.nombre} /> 
             <label style={ {marginBottom: 20} }>
                 <p style={ {fontSize: 26} }>Rol</p>
                 <select name="rol" defaultValue={'' + item_data.rol } style={ {fontSize: 26} }>
@@ -240,9 +258,12 @@ export default function Suppliers(){
                         <p style={ {fontSize: 26, marginBottom: 10} }>Rol</p>
                         <select name="rol" style={ {fontSize: 26} }>
                             <option value="0">Usuario</option>
-                            <option value="1" selected>Administrador</option>
+                            <option value="1">Administrador</option>
                         </select>
                     </label>
+
+                    <p style={ { color: 'red', fontSize: 26} }>{ errorMsj }</p>
+
 
                     <ButtonGroup>
                         <ControlButton type='submit' className="bg-primary">GUARDAR</ControlButton>
@@ -264,6 +285,7 @@ export default function Suppliers(){
                             { tableData ? 
                                 tableData.map( (item, index) => {
                                     return <tr key={index}>
+                                        <td>{ item.id }</td>
                                         <td>{ item.nombre }</td>
                                         <td>{ item.rol === 1 ? 'Administrador' : 'Usuario' }</td>
                                         <td style={ {display: 'flex'} }>

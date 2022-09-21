@@ -76,11 +76,11 @@ export default function Inventory(){
         let res = await getItems('stock');
         if(res.err !== true){
             function compare( a, b ) {
-                if ( a.nombre < b.nombre ){
+                if ( a.nombre.toLowerCase() < b.nombre.toLowerCase() ){
                   return -1;
                 }
 
-                if ( a.nombre > b.nombre ){
+                if ( a.nombre.toLowerCase() > b.nombre.toLowerCase() ){
                   return 1;
                 }
                 return 0;
@@ -173,7 +173,7 @@ export default function Inventory(){
                                 tableData.map( (item, index) => {
                                     return <tr key={index}>
                                         <td>{ item.nombre }</td>
-                                        <td>{ Math.round(((item.total_compras ? item.total_compras : 0) - (item.total_pedidos ? item.total_pedidos: 0) - (item.total_merma ? item.total_merma: 0)) *100 )/100 } Kg</td>
+                                        <td>{ Math.round(((item.total_compras ? item.total_compras : 0) - (item.total_pedidos ? item.total_pedidos: 0) - (item.total_merma ? item.total_merma: 0)) *100 )/100 } {item.venta_por} </td>
                                         <td style={ {display: 'flex'} }>
                                             <Button className="bg-red" onClick={ () => { openMermaModal(item); setCurrentItem(item) } }><FontAwesomeIcon icon={faTimes} /> Merma</Button>
                                             <Button ml className="bg-blue" onClick={ () => { openEditModal(item); setCurrentItem(item) } }><FontAwesomeIcon icon={faPencilAlt} /> Editar stock</Button>
@@ -193,7 +193,7 @@ export default function Inventory(){
 
                 <form className="modal-form" onSubmit={ applyMerma }>
                     <input type='hidden' name='product_id' defaultValue={ currentItem ? currentItem.id : null } required/>
-                    <PaymentAmount>Stock actual: {Math.round(((currentItem.total_compras ? currentItem.total_compras : 0) - (currentItem.total_pedidos ? currentItem.total_pedidos: 0) - (currentItem.total_merma ? currentItem.total_merma: 0)) *100 )/100 } Kg</PaymentAmount>
+                    <PaymentAmount>Stock actual: {Math.round(((currentItem.total_compras ? currentItem.total_compras : 0) - (currentItem.total_pedidos ? currentItem.total_pedidos: 0) - (currentItem.total_merma ? currentItem.total_merma: 0)) *100 )/100 } { currentItem ? currentItem.venta_por : null}</PaymentAmount>
 
                     <PaymentAmount>Merma: { currentNumber ? currentNumber : '0'} Kg</PaymentAmount>
                     <input type='hidden' value={currentNumber ? currentNumber : '0'} name='merma'/>
@@ -215,7 +215,7 @@ export default function Inventory(){
 
                 <form className="modal-form" onSubmit={ updateStock }>
                     <input type='hidden' name='product_id' defaultValue={ currentItem ? currentItem.id : null } required/>
-                    <PaymentAmount>{ currentNumber ? currentNumber : '0'} Kg</PaymentAmount>
+                    <PaymentAmount>{ currentNumber ? currentNumber : '0'} { currentItem ? currentItem.venta_por : null} </PaymentAmount>
                     <input type='hidden' value={ tableData ? Math.round(((currentItem.total_compras ? currentItem.total_compras : 0) - (currentItem.total_pedidos ? currentItem.total_pedidos: 0) - (currentItem.total_merma ? currentItem.total_merma: 0)) *100 )/100 : 0} name='current_stock'/>
                     <input type='hidden' value={currentNumber ? currentNumber : '0'} name='new_stock'/>
                     <Keypad currentNumber={currentNumber} setCurrentNumber={setCurrentNumber} />

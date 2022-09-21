@@ -15,7 +15,7 @@ import { getItems, insertItem, SP_API } from "../../utils/SP_APPI";
 import { getTotal, roundNumber } from "../../utils/Operations";
 
 const MainContainer = styled.div`
-    margin: 20px 20px 5px 20px;
+    margin: 20px 20px 5px 10px;
 `;
 
 const Header = styled.header` 
@@ -114,7 +114,7 @@ const CustomerDataItemLeft = styled.div`
 
 const ProductContainer = styled.div`
     display: flex;
-    min-height: calc(100vh - 160px);
+    max-height: calc(100vh - 180px);
 `;
 
 const ProductLeftSide = styled.div`
@@ -227,7 +227,7 @@ const ContraEntrega = styled.div`
 
     select{
         display: block;
-        font-size: 24px;
+        font-size: 30px;
         margin: auto;
         margin-bottom: 20px
     }
@@ -366,6 +366,7 @@ export default function Main(){
                     estado: 4,
                     efectivo: null,
                     cajero: localStorage.getItem('username'),
+                    cajero_id: localStorage.getItem('sp_user_id'),
                     chalan: evt.target.contra_entrega.value,
                     date:  (new Date().toISOString().split(':')[0]).split('T')[0]
                 }
@@ -392,6 +393,7 @@ export default function Main(){
                         chalan: null,
                         efectivo: payment,
                         cajero: localStorage.getItem('username'),
+                        cajero_id: localStorage.getItem('sp_user_id'),
                         date:  (new Date().toISOString().split(':')[0]).split('T')[0]
                     }
         
@@ -423,6 +425,7 @@ export default function Main(){
                 chalan: null,
                 efectivo: null,
                 cajero: localStorage.getItem('username'),
+                cajero_id: localStorage.getItem('sp_user_id'),
                 date:  (new Date().toISOString().split(':')[0]).split('T')[0]
             }
 
@@ -547,7 +550,7 @@ export default function Main(){
 
             <ModalForm onSubmit={ event => payOrder(event, true) }>
 
-                <p style={ {marginBottom: 20, textAlign: 'center', fontSize: 18} }>Total a pagar (fiado): <strong>${ getTotal(basket)} </strong></p>
+                <p style={ {marginBottom: 20, textAlign: 'center', fontSize: 18} }>Confirma que se va a fiar <strong>${ getTotal(basket)}</strong>  al cliente <strong>{currentClient.name} </strong></p>
                 <input type='hidden' defaultValue='0' name='pago'/>
                 <ModalButtons>
                     <Button type='submit' className="bg-primary">Fiar</Button>
@@ -637,7 +640,7 @@ export default function Main(){
 
                             <CustomerDataItemLeft>
                                 <strong>Deuda:</strong>
-                                <p>{ currentDebt ?'$'+ currentDebt : '$0'} </p>
+                                <p style={ { fontSize:28 } }>{ currentDebt ?'$'+ currentDebt : '$0'} </p>
                             </CustomerDataItemLeft>
 
                         </CustomerData>

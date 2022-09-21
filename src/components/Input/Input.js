@@ -25,7 +25,7 @@ export default function Input(props){
     return(
         <StyledLabel>
             <p>{ props.label }</p>
-            <StyledInput type={ props.type ? props.type: 'text'} placeholder={ props.placeholder} maxWidth={ props.maxWidth } name={ props.name } defaultValue={ props.defaultValue ? props.defaultValue : null} />
+            <StyledInput type={ props.type ? props.type: 'text'} max={ props.max ? props.max : ''} placeholder={ props.placeholder} maxWidth={ props.maxWidth } name={ props.name } defaultValue={ props.defaultValue ? props.defaultValue : null} />
         </StyledLabel>
     );
 }

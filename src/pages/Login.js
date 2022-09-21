@@ -42,10 +42,13 @@ export default function Login(){
         }
 
         let res = await checkUser(data);
+        console.log(res);
         if(res.err === false){
             localStorage.setItem('session-started', true);
             localStorage.setItem('username', data.name);
             localStorage.setItem('sp_rol', res.rol);
+            localStorage.setItem('sp_user_id', res.id);
+            // console.log(res);
             window.location.assign('/inicio');
         }
         else{

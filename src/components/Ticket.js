@@ -4,7 +4,7 @@ import Button from "./Button";
 import { getTotal, roundNumber } from '../utils/Operations';
 
 const TicketContainer = styled.div`
-    width: 35%;
+    width: 48%;
     padding: 20px 20px 0px 20px;
     display: flex;
     flex-direction: column;

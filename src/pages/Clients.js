@@ -255,7 +255,7 @@ export default function Clientes(){
                 <h2>NUEVO CLIENTE</h2>
                 <form onSubmit={ checkClientName } style={ {fontSize: 26} }>
                     <StyledInput type='text' placeholder='Nombre' label='Nombre' name='nombre' required/>
-                    <StyledInput type='text' placeholder='Teléfono' label='Teléfono' name='telefono'/>
+                    <StyledInput type='number' max='9999999999' placeholder='Teléfono' label='Teléfono' name='telefono'/>
                     <p style={ {color: '#ff0000'} } > { error } </p>
                     
                     <p style={ { color: 'red'} }>{ errorMsj }</p>

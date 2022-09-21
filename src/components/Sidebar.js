@@ -88,7 +88,7 @@ export default function Sidebar(props){
             href: '/productos',
             icon: faBoxes,
             submenu: false,
-            admin: false
+            admin: true
         },
         {
             name: 'Clientes',
@@ -109,7 +109,7 @@ export default function Sidebar(props){
             href: '/compras',
             icon: faShoppingBasket,
             submenu: false,
-            admin: true
+            admin: false
         },
         {
             name: 'Chalanes',
@@ -177,7 +177,7 @@ export default function Sidebar(props){
             ?
                 user_menu.map( (item,index) => <SidebarItem active={props.active ===  item.name ? true : false} name={ item.name } href={ item.href } icon={ item.icon } key={index}  />) 
             :
-                (user_menu.filter( item => !item.admin)).map( (item,index) => <SidebarItem className={props.active ===  item.name ? true : false} name={ item.name } href={ item.href } icon={ item.icon } key={index}  />) 
+                (user_menu.filter( item => !item.admin)).map( (item,index) => <SidebarItem active={props.active ===  item.name ? true : false} name={ item.name } href={ item.href } icon={ item.icon } key={index}  />) 
             }
 
             <style>

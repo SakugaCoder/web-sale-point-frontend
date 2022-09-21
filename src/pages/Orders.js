@@ -177,6 +177,7 @@ export default function Pedidos(){
     const [ currentOrder, setCurrentOrder] = useState(null);
     const [ errorMsj, setErrorMsj ] = useState('');
     const [ estadoCaja, setEstadoCaja ] = useState(null);
+    const [ clientDebt, setClientDebt ] = useState();
 
     const initialFunction = async () => {
         let res = await getItems('pedidos');
@@ -302,27 +303,32 @@ export default function Pedidos(){
     const printTicket = async ticket_order => {
         let res_order_detail = await getOrderDetail(ticket_order.id);
         // let adeudo_res = await SP_API(`http://localhost:3002/obtener-adeudo/${ticket_order.id_cliente}/${ticket_order.id}`, 'GET');
+        let id_cajero = await SP_API(`http://localhost:3002/id-usuario`, 'POST', {username: ticket_order.cajero});
+        let adeudo_res = await SP_API(`http://localhost:3002/obtener-adeudo/${ticket_order.id_cliente}`, 'GET');
         ticket_order.detalle = res_order_detail;
 
         let final_ticket_data = {
             id_pedido: ticket_order.id,
             fecha: ticket_order.fecha,
-            cajero: localStorage.getItem('username'),
+            // cajero: localStorage.getItem('username'),
+            // cajero: localStorage.getItem('sp_user_id'),
+            cajero: id_cajero.id,
             chalan: ticket_order.chalan ? ticket_order.chalan.split(',')[0] : 'NA',
             cliente: ticket_order.id_cliente,
-            adeudo: ticket_order.adeudo,// ticket_order.adeudo,
+            // adeudo: ticket_order.adeudo,// ticket_order.adeudo,
+            adeudo: adeudo_res.adeudo,
             estado_nota: getOrderStatusText(ticket_order.estado),
             efectivo: null,
             productos: ticket_order.detalle
         };
 
-        console.log(final_ticket_data);
+    
         let res = await SP_API('http://localhost:3002/imprimir-ticket', 'POST', final_ticket_data);
         alert('Ticket impreso');
     };
 
     const chalanesSelect = chalanes ? <select name='contra_entrega'>
-    <option value='0'>Seleccionar chalan</option>
+    <option value='0' style={ {fontSize: 30} }>Seleccionar chalan</option>
     { chalanes.map( chalan => <option value={chalan.id + ',' + chalan.nombre}>{ chalan.nombre}</option>) }
 </select> : null;
 
@@ -387,6 +393,21 @@ export default function Pedidos(){
     </div>
     };
 
+    const mostrarDeudaTotal = async cliente => {
+        if(cliente !== '0'){
+            let id_cliente = cliente.split(',')[0];
+            console.log(cliente);
+            let res = await SP_API('http://localhost:3002/deuda-usuario/'+id_cliente, 'GET');
+            console.log(res)
+            if(res){
+                setClientDebt(roundNumber(res[0].deuda_cliente));
+            }
+        }
+        else{
+            setClientDebt(null);
+        }
+        
+    }
 
     useEffect( () => {
         initialFunction();
@@ -431,6 +452,7 @@ export default function Pedidos(){
                     <Button className='bg-red' onClick={ () => window.location.reload() }>REINICIAR FILTROS</Button>
                 </div>
                 <div style={ { overflowX: 'auto', marginTop: 20}}>
+                    { clientDebt  || clientDebt >= 0? <p style={ {fontSize: 24, marginTop: 0} }>Deuda total de { filters.cliente.split(',')[1]}  = <strong>${ roundNumber(clientDebt) }</strong></p>: null }
                     { filters.chalan !== '0' && filters.chalan ? <p style={ {fontSize: 20} }>Total PCE chalan <strong>{filters.chalan.split(',')[1]}</strong> = <strong>${ roundNumber((filterData().filter( item => item.estado === 4).map( item => item.total_pagar)).reduce( (anterior, actual) => anterior + actual, 0)) }</strong> </p> : null}
                     {/*  tableData ? <TableWraper data={tableData} openEditModal={ openEditModal } openFiarModal={openFiarModal} /> : null  */} 
                     <StyledTable style={{ border: 'solid 1px #000' }}>
@@ -438,7 +460,7 @@ export default function Pedidos(){
                         <thead style={ {backgroundColor: '#26C485'} }>
                             <tr>
                                 <td><input type={'date'} style={ {padding: 10, fontSize: '16px'} } onChange={ (event) => setFilters({...filters, fecha: event.target.value }) }/> </td>
-                                <td><select name="cliente" style={ {padding: 10, fontSize: '16px'} } onChange={ (event) => setFilters({...filters, cliente: event.target.value }) } >
+                                <td><select name="cliente" style={ {padding: 10, fontSize: '16px'} } onChange={ (event) => { setFilters({...filters, cliente: event.target.value }); mostrarDeudaTotal(event.target.value) }} >
                                         <option value='0'>Cliente</option>
                                         { clients ? clients.map( cliente => <option value={cliente.id + ',' + cliente.nombre}>{ cliente.nombre}</option>) : null };
                                     </select></td>

@@ -89,7 +89,9 @@ export default function Suppliers(){
             console.log(res);
         }
 
-        setEstadoCaja(res_caja);
+        if(res_caja.caja){
+            setEstadoCaja(res_caja);
+        }
 
         let res_products = await getItems('Productos');
         setProducts(res_products);
@@ -114,7 +116,22 @@ export default function Suppliers(){
             es_retiro: evt.target.es_retiro.checked,
         };
 
-
+        if(data.es_retiro){
+            console.log(estadoCaja);
+            if(estadoCaja.caja){
+                let total = estadoCaja.ingresos - estadoCaja.retiros + estadoCaja.caja.fondo;
+                if(Number(data.costo) > total){
+                    setErrorMsj('Error. El costo ingresado es mayor al total de la caja.')
+                    return null;
+                }
+    
+                else if(Number(data.costo) === 0){
+                    setErrorMsj('Error. El costo ingresado es igual a cero, favor de ingresar una cantidad mayor.')
+                    return null;
+                }
+            }
+        }
+        
 
         if(data.product_id && data.kg && data.date && data.supplier_id && data.costo){
             let detalle_proveedor = suppliers.find( supplier => supplier.id === Number(evt.target.supplier_id.value) );
@@ -336,7 +353,7 @@ export default function Suppliers(){
                             </select>
                         </label>
 
-                        <StyledInput type='text' placeholder='Kg' label='Kg' name='kg' required maxWidth='300px'/>
+                        <StyledInput type='text' placeholder='Cantidad' label='Cantidad' name='kg' required maxWidth='300px'/>
                         <StyledInput type='date' placeholder='Fecha' label='Fecha' name='date' required maxWidth='300px' defaultValue={ currentDate ? currentDate.date : null }/>
 
                         <label>
@@ -383,7 +400,7 @@ export default function Suppliers(){
                                     { products ? products.map(producto => <option value={ producto.id }> {producto.name} </option>) : null }
                                 </select></td>
 
-                                <td>Kg</td>
+                                <td>Cantidad</td>
                                 <td><input style={ {fontSize: 18} } type={'date'} name='date' onChange={ (evt) => setFilters({fecha: evt.target.value, proveedor: filters.proveedor, producto: filters.producto})}/></td>
                                 <td>
                                     <select style={ {fontSize: 20} } name='supplier' onChange={ (evt) => setFilters({fecha: filters.fecha, proveedor: Number(evt.target.value), producto: filters.producto })}>

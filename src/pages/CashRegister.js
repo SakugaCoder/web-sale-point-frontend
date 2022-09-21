@@ -11,6 +11,7 @@ import Modal from "../components/Modal/Modal";
 import useModal from "../hooks/useModal";
 
 import { roundNumber } from "../utils/Operations";
+import { isContentEditable } from "@testing-library/user-event/dist/utils";
 
 const Container = styled.div`
     padding: 20px;
@@ -217,16 +218,34 @@ export default function Suppliers(){
         let monto = evt.target.monto.value;
         let concepto = evt.target.concepto.value;
         setErrorMsj('');
-        if(Number(monto) > 0 && concepto){
-            let data = {monto, concepto}
-            let res = await SP_API('http://localhost:3002/retirar-dinero', 'POST', data);
-            console.log(res);
-            window.location.reload();
+        // Validate total
+        console.log(cashRegisterStatus);
+        if(cashRegisterStatus.caja){
+            let total = cashRegisterStatus.ingresos - cashRegisterStatus.retiros + cashRegisterStatus.caja.fondo
+            if(Number(monto) <= total){
+                if(Number(monto) > 0 && concepto){
+                    // console.log("Monto: " + monto, "Total caja", cashRegisterStatus.caja.total);
+                    let data = {monto, concepto}
+                    let res = await SP_API('http://localhost:3002/retirar-dinero', 'POST', data);
+                    console.log(res);
+                    window.location.reload();
+                }
+        
+                else{
+                    setErrorMsj('Error. Favor de completar todos los campos.');
+                }
+            }
+
+            else{
+                setErrorMsj('Error. El monto ingresado es mayor al total de la caja.')
+            }
         }
 
         else{
-            setErrorMsj('Error. Favor de completar todos los campos.');
+            setErrorMsj('Error al leer el estado de la caja');
         }
+
+
     }
 
     const editModal = item_data => {
@@ -411,7 +430,7 @@ export default function Suppliers(){
                     <h2>LISTA DE CIERRES DE CAJA</h2>
 
                     <div style={ { overflowX: 'auto', display: 'flex'}}>
-                        <StyledTable>
+                        <StyledTable style={ {maxHeight: 560} }>
                             <thead>
                                 <tr>
                                     <td><input style={ {fontSize: 18} } type={'date'} name='date' onChange={ (evt) => setFilters({fecha: evt.target.value})}/></td>
@@ -419,7 +438,7 @@ export default function Suppliers(){
                                     <td>Ingresos</td>
                                     <td>Retiros</td>
                                     <td>Total</td>
-                                    <td>Cajero</td>
+                                    {/* <td>Cajero</td> */}
                                     <td>Acciones</td>
                                 </tr>
                             </thead>
@@ -439,7 +458,7 @@ export default function Suppliers(){
                                         <td>${ item.estado === 'abierta' ? roundNumber(item.SumaIngresos): item.ingresos}</td>
                                         <td>${ item.estado === 'abierta' ? roundNumber(item.SumaRetiros) : item.retiros}</td>
                                         <td>${ item.estado === 'abierta' ? roundNumber( (item.fondo + item.SumaIngresos) - item.SumaRetiros): item.total }</td>
-                                        <td>{ item.cajero }</td>
+                                        {/* <td>{ item.cajero }</td> */}
                                         <td style={ {display: 'flex'} }><Button className="bg-blue" onClick={ () => openDetailModal(item) }>Detalle Retiros</Button> <Button className="bg-light-blue" onClick={ () => openProductDetailModal(item) } ml>Detalle venta</Button> { item.estado === 'abierta' && localStorage.getItem('sp_rol') === '1' ? <Button className="bg-red" ml onClick={ () => openSingleCashRegisterModal(item.fecha, roundNumber( (item.fondo + item.SumaIngresos) - item.SumaRetiros), roundNumber(item.SumaRetiros), roundNumber(item.SumaIngresos))}>Cerrar caja</Button> : null}</td>
                                     </tr>
                                 })
@@ -520,10 +539,10 @@ export default function Suppliers(){
 
                                 <tbody>
                                 { sumatoria ? 
-                                        sumatoria.sumatorias.map( (item, index) => {
+                                        sumatoria.sumatorias.filter( s => s.Sumatoria > 0).map( (item, index) => {
                                         return <tr key={index}>
                                             <td>{ item.nombre }</td>
-                                            <td>{ item.Sumatoria } kg</td>
+                                            <td>{ item.Sumatoria } { item.venta_por }</td>
                                             <td>${ roundNumber(item.precio  * item.Sumatoria) }</td>
                                         </tr>
                                     })
