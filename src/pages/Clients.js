@@ -125,16 +125,18 @@ export default function Clientes(){
             telefono: evt.target.telefono.value,
             client_id: evt.target.client_id.value
         };
-        
-        handleModalClose();
 
-        let res = await updateItem('cliente', data);
-        if(res.err === false){
-            initialFunction();    
-        }
+        if(data.nombre.length > 0 && data.telefono.length === 10){
+            handleModalClose();
 
-        else{
-            alert('Error al actualizar el cliente');
+            let res = await updateItem('cliente', data);
+            if(res.err === false){
+                initialFunction();    
+            }
+    
+            else{
+                alert('Error al actualizar el cliente');
+            }
         }
     };
 
@@ -146,7 +148,7 @@ export default function Clientes(){
         <form className="modal-form" onSubmit={ updateClient } style={ {fontSize: '26px'} } >
             <input type='hidden' name='client_id' required defaultValue={item_data.id} /> 
             <Input placeholder='Nombre' label='Nombre' name='nombre' required defaultValue={item_data.nombre} /> 
-            <Input placeholder='Teléfono' label='Teléfono' name='telefono' required defaultValue={item_data.telefono} /> 
+            <Input placeholder='Teléfono' label='Teléfono' name='telefono' type='number' required defaultValue={item_data.telefono} /> 
             <div className="modal-buttons">
                 <Button className="bg-primary" type='submit'>Guardar</Button>
                 <Button className="bg-red" onClick={ handleModalClose }>Cancelar</Button>
@@ -205,19 +207,24 @@ export default function Clientes(){
             }
     
             else{
-                let client_data = {
-                    nombre: evt.target.nombre.value,
-                    telefono: evt.target.telefono.value
+                if(evt.target.telefono.value.length === 10){
+                    let client_data = {
+                        nombre: evt.target.nombre.value,
+                        telefono: evt.target.telefono.value
+                    }
+            
+                    let res = await SP_API('http://localhost:3002/nuevo-cliente', 'POST', client_data); 
+            
+                    if(res.error === false){
+                        window.location.reload();
+                    }
+                    // evt.target.action="http://localhost:3002/nuevo-cliente";
+                    // evt.target.method="post";
+                    // evt.target.submit();
                 }
-        
-                let res = await SP_API('http://localhost:3002/nuevo-cliente', 'POST', client_data); 
-        
-                if(res.error === false){
-                    window.location.reload();
+                else{
+                    setError('Error. El telefono debe de tener 10 digitos');
                 }
-                // evt.target.action="http://localhost:3002/nuevo-cliente";
-                // evt.target.method="post";
-                // evt.target.submit();
             }
         }
         else{

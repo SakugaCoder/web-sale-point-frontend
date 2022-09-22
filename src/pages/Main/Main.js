@@ -38,8 +38,12 @@ const CustomerStatus = styled.div`
 
     & select{
         padding: 10px 15px;
-        font-size: 18px;
+        font-size: 20px;
         border-radius: 40px;
+    }
+
+    & select option{
+        font-size: 18px;
     }
 
     select::-ms-expand {
@@ -227,7 +231,7 @@ const ContraEntrega = styled.div`
 
     select{
         display: block;
-        font-size: 30px;
+        font-size: 26px;
         margin: auto;
         margin-bottom: 20px
     }
@@ -296,8 +300,21 @@ export default function Main(){
 
     const getProducts = async () => {
         let products = await getItems('Productos');
-        setProducts(products);
-        console.log(products);
+
+        function compare( a, b ) {
+            if ( a.name.toLowerCase() < b.name.toLowerCase() ){
+              return -1;
+            }
+
+            if ( a.name.toLowerCase() > b.name.toLowerCase() ){
+              return 1;
+            }
+            return 0;
+        }
+          
+        let r = products.sort( compare );
+        setProducts(r);
+        console.log(r);
     };
 
     const getClients = async () => {
@@ -578,9 +595,9 @@ export default function Main(){
         }
     };
 
-    const chalanesSelect = chalanes ? <select name='contra_entrega'>
-        <option value='0'>Seleccionar chalan</option>
-        { chalanes.map( chalan => <option value={chalan.id + ',' + chalan.nombre}>{ chalan.nombre}</option>) }
+    const chalanesSelect = chalanes ? <select name='contra_entrega' style={ {fontSize: 30} }>
+        <option style={ {fontSize: 18} }  value='0'>Seleccionar chalan</option>
+        { chalanes.map( chalan => <option style={ {fontSize: 18} } value={chalan.id + ',' + chalan.nombre}>{ chalan.nombre}</option>) }
     </select> : null;
 
     const resetSelect = () => {
@@ -631,7 +648,7 @@ export default function Main(){
                         <CustomerData>
                             <CustomerDataItem>
                                 <strong>Cliente:</strong>
-                                    <select className="" style={ {background: '#CFDFE3', fontSize: 20} } ref={ selectClientRef }  onChange={ onChangeSelect }>
+                                    <select className="" style={ {background: '#CFDFE3'} } ref={ selectClientRef }  onChange={ onChangeSelect }>
                                     <option value={''}>SELECCIONAR CLIENTE</option>
                                     <option value={'0,Cliente de paso,0'}>CLIENTE DE PASO</option>
                                     { clients ? clients.map(client => <option value={ `${client.id},${client.nombre},${client.adeudo}` }> {client.nombre} </option>) : null}

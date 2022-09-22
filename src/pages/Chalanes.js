@@ -67,9 +67,23 @@ export default function Chalanes(){
     
     const initialFunction = async () => {
         let res = await getItems('chalanes');
+                
+        function compare( a, b ) {
+            if ( a.nombre.toLowerCase() < b.nombre.toLowerCase() ){
+              return -1;
+            }
+
+            if ( a.nombre.toLowerCase() > b.nombre.toLowerCase() ){
+              return 1;
+            }
+            return 0;
+        }
+          
+        
         if(res.err !== true){
-            setTableData(res);
-            console.log(res);
+            let r = res.sort( compare );
+            setTableData(r);
+            console.log(r);
         }      
     };
 
@@ -82,16 +96,23 @@ export default function Chalanes(){
 
         setErrorMsj('');
         if(evt.target.nombre.value && evt.target.telefono.value){
-            console.log('Creando chalan');
-            let res = await insertItem('chalan', data);
-            if(res.err === false){
-                evt.target.reset(); 
-                initialFunction();   
+            if(evt.target.telefono.value.length === 10){
+                console.log('Creando chalan');
+                let res = await insertItem('chalan', data);
+                if(res.err === false){
+                    evt.target.reset(); 
+                    initialFunction();   
+                }
+        
+                else{
+                    setErrorMsj('Error al actualizar chalan');
+                }
             }
-    
+
             else{
-                setErrorMsj('Error al actualizar chalan');
+                setErrorMsj('Error. El telefono debe de tener 10 digitos.');
             }
+
         }
         else{
             console.log('Error campos incompletos');
@@ -113,15 +134,17 @@ export default function Chalanes(){
             chalan_id: evt.target.chalan_id.value
         };
         
-        handleModalClose();
+        if(data.telefono.length === 10 && data.nombre.length > 0){
+            handleModalClose();
 
-        let res = await updateItem('chalan', data);
-        if(res.err === false){
-            initialFunction();    
-        }
-
-        else{
-            alert('Error al actualizar chalan');
+            let res = await updateItem('chalan', data);
+            if(res.err === false){
+                initialFunction();    
+            }
+    
+            else{
+                alert('Error al actualizar chalan');
+            }
         }
     };
 
@@ -183,10 +206,6 @@ export default function Chalanes(){
         initialFunction();
     }, []);
 
-    
-
-    
-
     return(
         <Layout active='Chalanes'>
             <Container>
@@ -195,7 +214,7 @@ export default function Chalanes(){
                 <form onSubmit={ createChalan } style={ {fontSize: '26px'} }>
 
                     <StyledInput type='text' placeholder='Nombre' label='Nombre' name='nombre' required/>
-                    <StyledInput type='number' max='9999999999' placeholder='Teléfono' label='Teléfono' name='telefono'/>
+                    <StyledInput type='number' placeholder='Teléfono' label='Teléfono' name='telefono'/>
                     <p style={ {color: 'red'} }>{ errorMsj }</p>
                     <ButtonGroup>
                         <ControlButton type='submit' className="bg-primary">GUARDAR</ControlButton>

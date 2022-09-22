@@ -108,8 +108,23 @@ export default function Productos(){
     
     const initialFunction = async () => {
         let res = await getItems('Productos');
-        console.log(res);
-        setTableData(res);
+
+        
+        function compare( a, b ) {
+            if ( a.name.toLowerCase() < b.name.toLowerCase() ){
+              return -1;
+            }
+
+            if ( a.name.toLowerCase() > b.name.toLowerCase() ){
+              return 1;
+            }
+            return 0;
+        }
+          
+        let r = res.sort( compare );
+
+        console.log(r);
+        setTableData(r);
     };
     
     const openEditModal = product_data => {
@@ -241,7 +256,7 @@ export default function Productos(){
                     </Modal>
 
                     <StyledInput type='text' placeholder='Nombre' label='Nombre' name='nombre'/>
-                    <StyledInput type='number' max='10000' placeholder='Precio' label='Precio' name='precio'/>
+                    <StyledInput type='number' max='99999.99' placeholder='Precio' step={'.01'} label='Precio' name='precio'/>
 
                     <label>
                         <p style={ {fontWeight: 600, marginBottom: 5} }>Venta por</p>

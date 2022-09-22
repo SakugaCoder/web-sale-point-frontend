@@ -58,6 +58,7 @@ const StyledTable = styled.table`
 export default function Suppliers(){
     const [tableData, setTableData] = useState(null);
     const { modalState, setModalState, handleModalClose } = useModal();
+    const [ error, setError ] = useState();
 
     const fields = ['Nombre', 'Eliminar', 'Modificar'];
 
@@ -73,19 +74,33 @@ export default function Suppliers(){
 
     const createSupplier = async evt =>{
         evt.preventDefault();
+        setError('');
         let data = {
             nombre: evt.target.nombre.value,
         };
 
-        let res = await insertItem('proveedor', data);
-        if(res.err === false){
-            evt.target.reset(); 
-            initialFunction();   
-        }
+        if(data.nombre.length > 0){
+            let user_exist = tableData.find( supplier => supplier.nombre.toLowerCase() === data.nombre.toLowerCase());
+            if(user_exist){
+                setError('Error. Nombre del proveedor ya existe, favor de agregar apellidos u otra palabra.');
+                return;
+            }
 
-        else{
-            alert('Error al actualizar proveedor');
+            let res = await insertItem('proveedor', data);
+            if(res.err === false){
+                evt.target.reset(); 
+                initialFunction();   
+            }
+    
+            else{
+                alert('Error al actualizar proveedor');
+                setError('Error. Al actualizar proveedor');
+            }
         }
+        else{
+            setError('Error. Favor de completar los campos requeridos');
+        }
+        
     };
     
     const openEditModal = data => {
@@ -98,17 +113,18 @@ export default function Suppliers(){
             nombre: evt.target.nombre.value,
             supplier_id: evt.target.supplier_id.value
         };
-        
-        handleModalClose();
+        if(data.nombre.length > 0){
+            handleModalClose();
 
-        let res = await updateItem('proveedor', data);
-        if(res.err === false){
-            initialFunction();    
-        }
-
-        else{
-            alert('Error al actualizar proveedor');
-        }
+            let res = await updateItem('proveedor', data);
+            if(res.err === false){
+                initialFunction();    
+            }
+    
+            else{
+                alert('Error al actualizar proveedor');
+            }
+        }  
     };
 
     const editModal = item_data => {
@@ -177,6 +193,7 @@ export default function Suppliers(){
                 <form onSubmit={ createSupplier }>
 
                     <StyledInput type='text' placeholder='Nombre' label='Nombre' name='nombre' required/>
+                    <p style={ {fontSize: 26, color: 'red'} }>{ error }</p>
 
                     <ButtonGroup>
                         <ControlButton type='submit' className="bg-primary">GUARDAR</ControlButton>
